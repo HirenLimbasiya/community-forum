@@ -1,6 +1,7 @@
 package websocket
 
 import (
+	"community-forum-backend/global"
 	"community-forum-backend/types"
 	"encoding/json"
 	"log"
@@ -41,7 +42,7 @@ func handleWebSocket(c *websocket.Conn) {
 		log.Printf("WebSocket Message: %v\n", wsMessageBody)
 
 		// Broadcast the message to all connected users
-		WSConnectionManager.BroadcastMessage([]byte(wsMessageBody.Content["message"].(string)))
+		WSConnectionManager.BroadcastMessage(wsMessageBody)
 	}
 }
 
@@ -86,15 +87,34 @@ func (cm *ConnectionManager) SendMessageToUser(recipientID string, msg []byte) e
 }
 
 // BroadcastMessage sends a message to all connected users
-func (cm *ConnectionManager) BroadcastMessage(msg []byte) {
+func (cm *ConnectionManager) BroadcastMessage(wsMessageBody types.WebSocketMessage) {
 	cm.mu.Lock()
 	defer cm.mu.Unlock()
 	for id, conn := range cm.connections {
 		log.Printf("User Id: %v\n", id)
-		if err := conn.WriteMessage(websocket.TextMessage, msg); err != nil {
-			// Handle error (e.g., log it, or remove the connection)
-			conn.Close()
-			delete(cm.connections, id)
+		//  Chack if user active send message
+		topicId, ok := global.UserActiveInTopic[id]
+		if ok || id == wsMessageBody.SenderID {
+			var resMessage types.WebSocketMessage
+			resMessage.Content = wsMessageBody.Content
+			resMessage.SenderID = wsMessageBody.SenderID
+			resMessage.RecipientID = wsMessageBody.RecipientID
+
+			if topicId == wsMessageBody.RecipientID {
+				resMessage.Type = "group_message"
+			} else {
+				resMessage.Type = "notification"
+			}
+			marshalData, err := json.Marshal(resMessage)
+			if err != nil {
+				log.Fatalf("Error converting struct to []byte: %v", err)
+			}
+
+			if err := conn.WriteMessage(websocket.TextMessage, marshalData); err != nil {
+				// Handle error (e.g., log it, or remove the connection)
+				conn.Close()
+				delete(cm.connections, id)
+			}
 		}
 	}
 }
