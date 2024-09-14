@@ -1,6 +1,8 @@
-package api
+package websocket
 
 import (
+	"community-forum-backend/types"
+	"encoding/json"
 	"log"
 	"sync"
 
@@ -9,13 +11,13 @@ import (
 )
 
 func RegisterWebSocketRoutes(app *fiber.App) {
-	app.Post("/api/websocket", websocket.New(handleWebSocket))
+	app.Get("/api/websocket", websocket.New(handleWebSocket))
 }
 
 func handleWebSocket(c *websocket.Conn) {
 	userID := c.Query("user_id") // Retrieve user ID from query parameters
-	connectionManager.AddConnection(userID, c)
-	defer connectionManager.RemoveConnection(userID)
+	WSConnectionManager.AddConnection(userID, c)
+	defer WSConnectionManager.RemoveConnection(userID)
 	defer c.Close()
 
 	for {
@@ -26,12 +28,24 @@ func handleWebSocket(c *websocket.Conn) {
 		}
 		log.Printf("Received message from %s: %s\n %v", userID, msg, msgType)
 
+		// Create a map to hold the dynamic data
+		var wsMessageBody types.WebSocketMessage
+
+		// Convert (unmarshal) JSON string into the map
+		unmarshalErr := json.Unmarshal([]byte(msg), &wsMessageBody)
+		if unmarshalErr != nil {
+			log.Fatalf("Error converting string to map: %v", unmarshalErr)
+		}
+
+		// Print the result
+		log.Printf("WebSocket Message: %v\n", wsMessageBody)
+
 		// Broadcast the message to all connected users
-		connectionManager.BroadcastMessage(msg)
+		WSConnectionManager.BroadcastMessage([]byte(wsMessageBody.Content["message"].(string)))
 	}
 }
 
-var connectionManager = NewConnectionManager()
+var WSConnectionManager = NewConnectionManager()
 
 // ConnectionManager manages WebSocket connections
 type ConnectionManager struct {
