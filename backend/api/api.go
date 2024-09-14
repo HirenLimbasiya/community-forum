@@ -11,4 +11,5 @@ func RegisterRoutes(app *fiber.App) {
 	RegisterTopicRoutes(app)
 	RegisterTopicReplyRoutes(app)
 	RegisterReactionRoutes(app)
+	RegisterWebSocketRoutes(app)
 }
