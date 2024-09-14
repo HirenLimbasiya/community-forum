@@ -1,3 +1,26 @@
-/* @tailwind base;
+@tailwind base;
 @tailwind components;
-@tailwind utilities; */
+@tailwind utilities;
+
+/* Custom global styles */
+@layer base {
+  body {
+    @apply bg-light text-navy;
+  }
+}
+
+@layer components {
+  h1, h2, h3, h4, h5, h6 {
+    @apply font-sans text-darkBlue;
+  }
+
+  a {
+    @apply text-darkBlue hover:text-softBlue transition duration-200;
+  }
+
+  p {
+    @apply text-base text-navy leading-relaxed;
+  }
+}
+
+/* Add any additional global styles you need here */

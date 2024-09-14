@@ -22,6 +22,7 @@ type Topic struct {
 	ID    primitive.ObjectID `json:"id,omitempty" bson:"_id,omitempty"`
 	Title string             `json:"title" bson:"title"`
 	Body  string             `json:"body" bson:"body"`
+	IsClosed bool `json:"isClosed" bson:"isClosed"`
 }
 
 type CreateTopic struct {
@@ -50,7 +51,6 @@ type TopicReply struct {
 	ReactionCount int                `json:"reaction_count" bson:"reaction_count"`
 	UserReacted   Reaction           `json:"user_reacted" bson:"user_reacted"`
 	IsReactesd bool `json:"is_reacted" bson:"is_reacted"`
-	// ReactionsData map[string]interface{} `json:"reactions_data" bson:"reactions_data"`
 }
 type CreateTopicReply struct {
 	TopicID  string             `json:"topic_id" bson:"topic_id"`
