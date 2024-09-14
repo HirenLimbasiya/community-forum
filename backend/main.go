@@ -10,6 +10,7 @@ import (
 	"community-forum-backend/db"
 
 	"github.com/gofiber/fiber/v2"
+	"github.com/gofiber/fiber/v2/middleware/cors"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
 )
@@ -33,6 +34,12 @@ func main() {
 
 	// Fiber app setup
 	app := fiber.New()
+
+	app.Use(cors.New(cors.Config{
+		AllowOrigins: "http://localhost:3000",
+		AllowMethods: "GET,POST,PUT,DELETE, PATCH",
+		AllowHeaders: "Origin, Content-Type, Accept, Authorization", // Include Authorization header
+	}))
 
 	api.RegisterRoutes(app)
 

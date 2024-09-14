@@ -20,8 +20,9 @@ type UserResponse struct {
 
 type Topic struct {
 	ID    primitive.ObjectID `json:"id,omitempty" bson:"_id,omitempty"`
-	Title string             `json:"title"        bson:"title"`
-	Body  string             `json:"body"         bson:"body"`
+	Title string             `json:"title" bson:"title"`
+	Body  string             `json:"body" bson:"body"`
+	IsClosed bool `json:"isClosed" bson:"isClosed"`
 }
 
 type CreateTopic struct {

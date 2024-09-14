@@ -1,8 +1,8 @@
+"use client";
+import Counter from "./components/Counter";
 
-export default function Home() {
-  return (
-    <div>
-      hiren l
-    </div>
-  );
-}
+const Home = () => {
+  return <Counter />;
+};
+
+export default Home;
