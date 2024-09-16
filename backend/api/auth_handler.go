@@ -1,7 +1,6 @@
 package api
 
 import (
-	"community-forum-backend/global"
 	"community-forum-backend/types"
 	"fmt"
 	"io/ioutil"
@@ -78,13 +77,6 @@ func handleLogin(c *fiber.Ctx) error {
 	token, err := GenerateJWT(user.ID.Hex(), user.Name, user.Email)
 	if err != nil {
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": "Failed to generate token"})
-	}
-
-	// chack user in globalusers
-	_, ok := global.UserActiveInTopic[user.ID.Hex()]
-	if !ok {
-		// add user in globalusers
-		global.UserActiveInTopic[user.ID.Hex()] = ""
 	}
 
 	return c.JSON(fiber.Map{"token": token})

@@ -1,6 +1,7 @@
 package api
 
 import (
+	"community-forum-backend/global"
 	"community-forum-backend/types"
 	"strings"
 
@@ -21,6 +22,14 @@ func handleGetTopics(c *fiber.Ctx) error {
 	if err != nil {
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": err.Error()})
 	}
+
+	user := c.Locals("user").(types.UserResponse)
+	// assign "" to user
+	_, userOk := global.UserActiveInTopic[user.ID.Hex()]
+	if userOk {
+		global.UserActiveInTopic[user.ID.Hex()] = ""
+	}
+
 	return c.JSON(topics)
 }
 
@@ -49,6 +58,34 @@ func handleGetTopic(c *fiber.Ctx) error {
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": "Failed to get topic"})
 	}
 
+	user := c.Locals("user").(types.UserResponse)
+	// assign topic to user
+	userCurrTopicId, userOk := global.UserActiveInTopic[user.ID.Hex()]
+	if userOk {
+		global.UserActiveInTopic[user.ID.Hex()] = topicID
+	}
+
+	// remove user from topic array
+	_, currTopicOk := global.GlobalTopic[userCurrTopicId]
+	if currTopicOk {
+		for indexToRemove, topicUserId := range global.GlobalTopic[userCurrTopicId] {
+			if topicUserId == userCurrTopicId {
+				global.GlobalTopic[userCurrTopicId] = append(
+					global.GlobalTopic[userCurrTopicId][:indexToRemove],
+					global.GlobalTopic[userCurrTopicId][indexToRemove+1:]...)
+				break
+			}
+		}
+	}
+
+	// assign user in topic array
+	_, topicOk := global.GlobalTopic[topicID]
+	if topicOk {
+		global.GlobalTopic[topicID] = append(global.GlobalTopic[topicID], user.ID.Hex())
+	} else {
+		global.GlobalTopic[topicID] = []string{user.ID.Hex()}
+	}
+
 	// Return the retrieved topic
 	return c.JSON(topic)
 }
@@ -64,6 +101,11 @@ func handleDeleteTopic(c *fiber.Ctx) error {
 			return c.Status(fiber.StatusNotFound).JSON(fiber.Map{"error": "Topic not found"})
 		}
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": "Failed to delete topic"})
+	}
+
+	_, topicOk := global.GlobalTopic[topicID]
+	if topicOk {
+		delete(global.GlobalTopic, topicID)
 	}
 
 	// Return success message

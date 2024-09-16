@@ -21,6 +21,13 @@ func handleWebSocket(c *websocket.Conn) {
 	defer WSConnectionManager.RemoveConnection(userID)
 	defer c.Close()
 
+	// chack user in globalusers
+	_, ok := global.UserActiveInTopic[userID]
+	if !ok {
+		// add user in globalusers
+		global.UserActiveInTopic[userID] = ""
+	}
+
 	for {
 		msgType, msg, err := c.ReadMessage()
 		if err != nil {
@@ -91,30 +98,48 @@ func (cm *ConnectionManager) BroadcastMessage(wsMessageBody types.WebSocketMessa
 	cm.mu.Lock()
 	defer cm.mu.Unlock()
 	for id, conn := range cm.connections {
-		log.Printf("User Id: %v\n", id)
-		//  Chack if user active send message
-		topicId, ok := global.UserActiveInTopic[id]
-		if ok || id == wsMessageBody.SenderID {
-			var resMessage types.WebSocketMessage
-			resMessage.Content = wsMessageBody.Content
-			resMessage.SenderID = wsMessageBody.SenderID
-			resMessage.RecipientID = wsMessageBody.RecipientID
 
-			if topicId == wsMessageBody.RecipientID {
-				resMessage.Type = "group_message"
-			} else {
-				resMessage.Type = "notification"
-			}
-			marshalData, err := json.Marshal(resMessage)
-			if err != nil {
-				log.Fatalf("Error converting struct to []byte: %v", err)
-			}
+		// if user is online but not added in global UserActiveInTopic
+		_, ok := global.UserActiveInTopic[id]
+		if !ok {
+			//  add in global UserActiveInTopic
+			global.UserActiveInTopic[id] = ""
+		}
 
-			if err := conn.WriteMessage(websocket.TextMessage, marshalData); err != nil {
+		message, messageErr := generateMessage(id, wsMessageBody)
+		if messageErr == nil && message != nil {
+			if writeMessageError := conn.WriteMessage(websocket.TextMessage, message); writeMessageError != nil {
 				// Handle error (e.g., log it, or remove the connection)
 				conn.Close()
 				delete(cm.connections, id)
 			}
 		}
 	}
+}
+
+// generateMessage create a message for one user
+func generateMessage(id string, wsMessageBody types.WebSocketMessage) ([]byte, error) {
+	log.Printf("User Id: %v\n", id)
+	//  Chack if user active send message
+	topicId, ok := global.UserActiveInTopic[id]
+	if ok || id == wsMessageBody.SenderID {
+		var resMessage types.WebSocketMessage
+		resMessage.Content = wsMessageBody.Content
+		resMessage.SenderID = wsMessageBody.SenderID
+		resMessage.RecipientID = wsMessageBody.RecipientID
+
+		if topicId == wsMessageBody.RecipientID {
+			resMessage.Type = "group_message"
+		} else {
+			resMessage.Type = "notification"
+		}
+		marshalData, err := json.Marshal(resMessage)
+		if err != nil {
+			log.Fatalf("Error converting struct to []byte: %v", err)
+			return nil, err
+		}
+
+		return marshalData, nil
+	}
+	return nil, nil
 }
