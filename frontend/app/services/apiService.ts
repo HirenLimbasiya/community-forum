@@ -11,9 +11,10 @@ export interface ApiResponse<T> {
 }
 
 const axiosInstance = axios.create({
-  baseURL: NEXT_PUBLIC_API_URL+API_PREFIX,
+  baseURL: NEXT_PUBLIC_API_URL + API_PREFIX,
   headers: {
     "Content-Type": "application/json",
+    Authorization: "Bearer " + localStorage.getItem("token"),
   },
 });
 
@@ -29,13 +30,15 @@ axiosInstance.interceptors.response.use(
 
 // Helper function to structure the response
 const handleResponse = <T>(response: AxiosResponse<T>): ApiResponse<T> => {
-    return {
-        data: response.data,
-        message: response.statusText,
-    };
+  return {
+    data: response.data,
+    message: response.statusText,
+  };
 };
 
-export const getRequest = async <T>(endpoint: string): Promise<ApiResponse<T>> => {
+export const getRequest = async <T>(
+  endpoint: string
+): Promise<ApiResponse<T>> => {
   const response = await axiosInstance.get<T>(endpoint);
   return handleResponse(response);
 };
@@ -64,9 +67,12 @@ export const patchRequest = async <T>(
   return handleResponse(response);
 };
 
-export const deleteRequest = async <T>(
-    endpoint: string
-): Promise<ApiResponse<T>> => {
-    const response = await axiosInstance.delete<T>(endpoint);
-    return handleResponse(response); 
+export const deleteRequest = async (
+  endpoint: string
+): Promise<ApiResponse<null>> => {
+  const response = await axiosInstance.delete(endpoint);
+  return {
+    data: null, // since you're deleting, the data should be null
+    message: response.statusText,
+  };
 };

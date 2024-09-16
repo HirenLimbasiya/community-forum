@@ -14,6 +14,7 @@ func RegisterTopicRoutes(app *fiber.App) {
 	app.Get("/api/topic/:id", handleGetTopic)
 	app.Patch("/api/topic/:id", handleUpdateTopic)
 	app.Delete("/api/topic/:id", handleDeleteTopic)
+	app.Get("/api/topics/user", handleGetTopicsByUser)
 }
 
 func handleGetTopics(c *fiber.Ctx) error {
@@ -26,9 +27,11 @@ func handleGetTopics(c *fiber.Ctx) error {
 
 func handleCreateTopic(c *fiber.Ctx) error {
 	var topic types.CreateTopic
+	user := c.Locals("user").(types.UserResponse)
 	if err := c.BodyParser(&topic); err != nil {
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": err.Error()})
 	}
+	topic.CreatedBy = user.ID
 	result, err := Store.Topic.Create(c.Context(), topic)
 	if err != nil {
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": err.Error()})
@@ -113,4 +116,21 @@ func handleUpdateTopic(c *fiber.Ctx) error {
 
 	// Return success message
 	return c.JSON(fiber.Map{"message": "Topic updated successfully"})
+}
+func handleGetTopicsByUser(c *fiber.Ctx) error {
+	// Get user from context (assumed to be set by auth middleware)
+	user := c.Locals("user").(types.UserResponse)
+	userID := user.ID
+
+	// Retrieve topics created by this user from the database
+	topics, err := Store.Topic.GetByUserID(c.Context(), userID)
+	if err != nil {
+		if err == mongo.ErrNoDocuments {
+			return c.Status(fiber.StatusNotFound).JSON(fiber.Map{"error": "No topics found for this user"})
+		}
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": "Failed to get topics"})
+	}
+
+	// Return the retrieved topics
+	return c.JSON(topics)
 }

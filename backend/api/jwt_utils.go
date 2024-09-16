@@ -102,3 +102,4 @@ func authMiddleware(c *fiber.Ctx) error {
 
 	return c.Next()
 }
+

@@ -1,0 +1,108 @@
+"use client";
+
+import React, { createContext, useContext, useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
+import { loginUser, createUser } from "../services/userService"; // Adjust the import based on your structure
+import { connectSocket } from "../lib/socket";
+
+interface AuthContextType {
+  isAuthenticated: boolean;
+  login: (email: string, password: string) => Promise<void>;
+  logout: () => void;
+  register: (
+    username: string,
+    email: string,
+    password: string
+  ) => Promise<void>;
+}
+
+const AuthContext = createContext<AuthContextType | undefined>(undefined);
+
+export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
+  children,
+}) => {
+  const [isAuthenticated, setIsAuthenticated] = useState<boolean>(false);
+  const [isCalled, setIsCalled] = useState<boolean>(false);
+  const router = useRouter();
+
+  const setUpSocket = (token: string | null) => {
+    if (token) {
+      const payload = token.split(".")[1]; // Get the payload part of the JWT
+      const decodedPayload = JSON.parse(atob(payload)); // Decode base64 and parse JSON
+
+      const userId = decodedPayload.id; // Replace 'id' with the actual key for user ID in your token
+
+      console.log("User ID:", userId); 
+      connectSocket(userId);
+    }
+
+  };
+
+  useEffect(() => {
+    const token = localStorage.getItem("token");
+    const isAuthenticated = Boolean(token);
+    if (isAuthenticated) {
+      setUpSocket(token);
+    }
+    setIsAuthenticated(isAuthenticated);
+    setIsCalled(true);
+  }, []);
+
+  const login = async (email: string, password: string) => {
+    try {
+      const { data } = await loginUser({ email, password });
+      if (data?.token) {
+        localStorage.setItem("token", data.token);
+        setUpSocket(data.token);
+        setIsAuthenticated(true);
+        router.push("/topic");
+      } else {
+        throw new Error("Invalid credentials");
+      }
+    } catch (error) {
+      console.error("Login failed:", error);
+      throw new Error("Login failed");
+    }
+  };
+
+  const logout = () => {
+    setIsAuthenticated(false);
+    localStorage.removeItem("token");
+    router.push("/login");
+  };
+
+  const register = async (
+    username: string,
+    email: string,
+    password: string
+  ) => {
+    try {
+      const { data } = await createUser({ username, email, password });
+      if (data?.token) {
+        localStorage.setItem("token", data.token);
+        setUpSocket(data.token);
+        setIsAuthenticated(true);
+        router.push("/topic");
+      } else {
+        throw new Error("Registration failed");
+      }
+    } catch (error) {
+      console.error("Registration failed:", error);
+      throw new Error("Registration failed");
+    }
+  };
+
+  return (
+    <AuthContext.Provider value={{ isAuthenticated, login, logout, register }}>
+      {isCalled && children}
+    </AuthContext.Provider>
+  );
+};
+
+export const useAuth = () => {
+  const context = useContext(AuthContext);
+  if (!context) {
+    throw new Error("useAuth must be used within an AuthProvider");
+  }
+  return context;
+};

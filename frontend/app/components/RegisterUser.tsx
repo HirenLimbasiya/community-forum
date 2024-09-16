@@ -1,30 +1,35 @@
 "use client"; // This component will use client-side rendering
 
-import { useState } from "react";
-import { createUser } from "../services/userService";
+import { useState, useEffect } from "react";
+import { useAuth } from "../context/AuthContext"; // Import AuthContext
 import { useRouter } from "next/navigation";
 
 const RegisterUser = () => {
+  const { register, isAuthenticated } = useAuth(); // Access register and isAuthenticated from AuthContext
   const [username, setUsername] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const router = useRouter();
+  const [error, setError] = useState<string | null>(null);
+  const router = useRouter(); // Access the router
+
+  useEffect(() => {
+    if (isAuthenticated) {
+      router.push("/topic"); // Redirect if already authenticated
+    }
+  }, [isAuthenticated]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
-      const { data } = await createUser({ username, email, password });
-
-      localStorage.setItem("token", data.token);
-      router.push("/topic");
+      await register(username, email, password);
     } catch (error) {
-      console.error("Registration failed:", error);
+      setError("Registration failed. Please try again.");
     }
-    console.log({ username, email, password });
   };
 
   return (
     <form onSubmit={handleSubmit} className="space-y-4">
+      {error && <p className="text-red-600">{error}</p>}
       <div>
         <label
           className="block text-sm font-medium text-navy"

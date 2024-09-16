@@ -1,13 +1,19 @@
+export interface CreateTopic {
+  title: string;
+  body: string;
+}
+
 export interface Topic {
   id: string;
   title: string;
   body: string;
-  isClosed: boolean;
+  is_closed: boolean;
+  created_by: string;
 }
 
 // types/topicReply.ts
 export interface UserResponse {
-  id: string;  // Changed to lowercase and ObjectID to string
+  id: string; // Changed to lowercase and ObjectID to string
   name: string; // Changed to lowercase
   email: string; // Changed to lowercase
 }

@@ -22,12 +22,14 @@ type Topic struct {
 	ID    primitive.ObjectID `json:"id,omitempty" bson:"_id,omitempty"`
 	Title string             `json:"title" bson:"title"`
 	Body  string             `json:"body" bson:"body"`
-	IsClosed bool `json:"isClosed" bson:"isClosed"`
+	IsClosed bool `json:"is_closed" bson:"is_closed"`
+	CreatedBy primitive.ObjectID `json:"created_by" bson:"created_by"`
 }
 
 type CreateTopic struct {
 	Title string `json:"title" bson:"title"`
 	Body  string `json:"body"  bson:"body"`
+	CreatedBy primitive.ObjectID `json:"created_by" bson:"created_by"`
 }
 
 type CreateUser struct {
@@ -90,5 +92,9 @@ type WebSocketMessage struct {
 	Type        string                 `json:"type"         bson:"type"`
 	SenderID    string                 `json:"sender_id"    bson:"sender_id"`
 	RecipientID string                 `json:"recipient_id" bson:"recipient_id"`
-	Content     map[string]interface{} `json:"content"      bson:"content"`
+	Content     Content `json:"content"      bson:"content"`
+}
+
+type Content struct {
+	Message string `json:"message" bson:"message"`
 }

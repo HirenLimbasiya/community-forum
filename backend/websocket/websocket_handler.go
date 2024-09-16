@@ -12,8 +12,9 @@ import (
 )
 
 func RegisterWebSocketRoutes(app *fiber.App) {
-	app.Get("/api/websocket", websocket.New(handleWebSocket))
+	app.Get("/websocket", websocket.New(handleWebSocket))
 }
+var WSConnectionManager = NewConnectionManager()
 
 func handleWebSocket(c *websocket.Conn) {
 	userID := c.Query("user_id") // Retrieve user ID from query parameters
@@ -40,13 +41,20 @@ func handleWebSocket(c *websocket.Conn) {
 
 		// Print the result
 		log.Printf("WebSocket Message: %v\n", wsMessageBody)
-
+		switch wsMessageBody.Type {
+        case "join_to_topic":
+            handleJoinToTopic(wsMessageBody.SenderID, wsMessageBody.RecipientID)
+		case "leave_from_topic":
+            handleLeaveFromTopic(wsMessageBody.SenderID, wsMessageBody.RecipientID)
+		case "message":
+            handleMessage(wsMessageBody)
+        default:
+			WSConnectionManager.BroadcastMessage(wsMessageBody)
+        }
 		// Broadcast the message to all connected users
-		WSConnectionManager.BroadcastMessage(wsMessageBody)
 	}
 }
 
-var WSConnectionManager = NewConnectionManager()
 
 // ConnectionManager manages WebSocket connections
 type ConnectionManager struct {
@@ -111,10 +119,64 @@ func (cm *ConnectionManager) BroadcastMessage(wsMessageBody types.WebSocketMessa
 			}
 
 			if err := conn.WriteMessage(websocket.TextMessage, marshalData); err != nil {
-				// Handle error (e.g., log it, or remove the connection)
 				conn.Close()
 				delete(cm.connections, id)
 			}
 		}
 	}
+}
+
+func handleJoinToTopic(userID string, topicID string) {
+    global.UserActiveInTopic[userID] = topicID 
+    global.GlobalTopic[topicID] = append(global.GlobalTopic[topicID], userID)
+
+    log.Printf("User %s joined topic %s. Current users in topic: %v\n", userID, topicID, global.GlobalTopic[topicID])
+}
+
+func handleLeaveFromTopic(userID string, topicID string) {
+    delete(global.UserActiveInTopic, userID)
+    // Find and remove user from the topic's user array
+    if users, exists := global.GlobalTopic[topicID]; exists {
+        for i, id := range users {
+            if id == userID {
+                global.GlobalTopic[topicID] = append(users[:i], users[i+1:]...) // Remove the user by slicing
+                log.Printf("User %s left topic %s. Current users in topic: %v\n", userID, topicID, global.GlobalTopic[topicID])
+                return
+            }
+        }
+    }
+    log.Printf("User %s was not in topic %s.\n", userID, topicID)
+}
+
+func handleMessage(wsMessageBody types.WebSocketMessage) {
+    topicID := wsMessageBody.RecipientID // This is the topic ID
+    messageContent := wsMessageBody.Content.Message // Get the message content
+
+    // Check if the topic exists in GlobalTopic
+    if users, exists := global.GlobalTopic[topicID]; exists {
+        // Broadcast the message to all users in the topic
+        for _, userID := range users {
+            // Create a message to send
+            responseMessage := types.WebSocketMessage{
+                Type:        "message", // Message type to be sent back
+                SenderID:   wsMessageBody.SenderID,
+                RecipientID: topicID,
+            }
+			responseMessage.Content.Message = messageContent
+            // Convert the message to JSON
+            marshalData, err := json.Marshal(responseMessage)
+            if err != nil {
+                log.Printf("Error marshaling response message: %v", err)
+                continue
+            }
+
+            // Send the message to the user
+            err = WSConnectionManager.SendMessageToUser(userID, marshalData)
+            if err != nil {
+                log.Printf("Error sending message to user %s: %v", userID, err)
+            }
+        }
+    } else {
+        log.Printf("Topic %s does not exist. Unable to send message.\n", topicID)
+    }
 }

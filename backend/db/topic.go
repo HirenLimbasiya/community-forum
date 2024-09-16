@@ -16,6 +16,7 @@ type TopicStore interface {
 	GetByID(ctx context.Context, id string) (types.Topic, error)
 	UpdateByID(ctx context.Context, id string, topic types.CreateTopic) (error)
 	DeleteByID(ctx context.Context, id string) (error)
+	GetByUserID(ctx context.Context, userID primitive.ObjectID) ([]types.Topic, error)
 }
 
 type topicStore struct {
@@ -118,4 +119,31 @@ func (s *topicStore) UpdateByID(ctx context.Context, id string, fields types.Cre
 	}
 
 	return nil
+}
+func (s *topicStore) GetByUserID(ctx context.Context, userID primitive.ObjectID) ([]types.Topic, error) {
+	// Filter topics where "created_by" matches the given userID
+	filter := bson.M{"created_by": userID}
+
+	// Find topics based on the filter
+	cursor, err := s.Collection.Find(ctx, filter)
+	if err != nil {
+		return nil, err
+	}
+	defer cursor.Close(ctx)
+
+	var topics []types.Topic
+	for cursor.Next(ctx) {
+		var topic types.Topic
+		if err := cursor.Decode(&topic); err != nil {
+			return nil, err
+		}
+		topics = append(topics, topic)
+	}
+
+	// Check for errors after looping through the cursor
+	if err := cursor.Err(); err != nil {
+		return nil, err
+	}
+
+	return topics, nil
 }
