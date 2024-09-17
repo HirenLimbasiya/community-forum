@@ -54,7 +54,11 @@ export interface SocketSendMessage<T = unknown> {
   recipient_id: string;
   session_id?: string;
   data?: T;
-  type: "join_to_topic" | "leave_from_topic" | "send_topic_reply";
+  type:
+    | "join_to_topic"
+    | "leave_from_topic"
+    | "send_topic_reply"
+    | "delete_topic_reply";
 }
 
 const sendSocketMessage = (message: SocketSendMessage) => {

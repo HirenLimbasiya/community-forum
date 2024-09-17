@@ -5,28 +5,48 @@ import React, { useState } from "react";
 import ReplyActions from "./ReplyActions"; // Import the new ReplyActions component
 import { TopicReply } from "../types/topic";
 import UserReaction from "./UserReaction";
+import { sendSocketMessage, SocketSendMessage } from "../lib/socket";
 
 interface ReplyCardProps {
   reply: TopicReply;
   loggedInUserId: string; // Add prop for logged-in user's ID
 }
 
-const ReplyCard = ({
-  reply,
-  loggedInUserId,
-}: ReplyCardProps) => {
-  
-  
+const ReplyCard = ({ reply, loggedInUserId }: ReplyCardProps) => {
   const [isHovered, setIsHovered] = useState(false); // State to manage hover
-  const [userReaction, setUserReaction] = useState(reply.user_reacted?.reaction || ""); // Track user reaction
+  const [userReaction, setUserReaction] = useState(
+    reply.user_reacted?.reaction || ""
+  ); // Track user reaction
   const isSender = reply.sender_id === loggedInUserId; // Check if the logged-in user is the sender
-  
+
   const handleReaction = (reaction: string) => {
     setUserReaction(reaction);
     // Here you would also call a function to handle the reaction in the backend
   };
 
-  
+  const handleActionsReply = (actionType: string) => {
+    switch (actionType) {
+      case "delete":
+        const deleteMessage: SocketSendMessage = {
+          type: "delete_topic_reply",
+          recipient_id: reply.id,
+          data: {},
+        };
+
+        sendSocketMessage(deleteMessage);
+        break;
+
+      case "report":
+        break;
+
+      case "edit":
+        break;
+
+      default:
+        break;
+    }
+  };
+
   return (
     <div
       className={`bg-white rounded-lg p-4 shadow-md relative hover:bg-gray-50 transition duration-200 ease-in-out ${
@@ -75,9 +95,10 @@ const ReplyCard = ({
 
       <span className="absolute bottom-2 right-2 text-gray-400 text-xs">
         {new Date(reply.sent_time).toLocaleString()}
-        
       </span>
-      {isHovered && <ReplyActions isSender={isSender} />}
+      {isHovered && (
+        <ReplyActions isSender={isSender} onClick={handleActionsReply} />
+      )}
     </div>
   );
 };

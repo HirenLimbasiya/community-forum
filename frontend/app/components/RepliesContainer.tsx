@@ -61,6 +61,7 @@ const RepliesContainer = ({ topicId }: RepliesContainerProps) => {
         recipient_id: topicId,
       });
     };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   // if (loading) {
