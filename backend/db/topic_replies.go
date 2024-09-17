@@ -14,6 +14,7 @@ type TopicReplyStore interface {
 	Create(ctx context.Context, reply types.CreateTopicReply) (*types.TopicReply, error)
 	GetByTopicID(ctx context.Context, topicID string, userID primitive.ObjectID) ([]types.TopicReply, error)
 	GetByID(ctx context.Context, id string) (types.TopicReply, error)
+	DeleteByID(ctx context.Context, id string) (types.TopicReply, error)
 }
 
 type topicReplyStore struct {
@@ -155,6 +156,12 @@ func (s *topicReplyStore) GetByTopicID(
 		return nil, err
 	}
 
+	for replieIndex, replie := range replies {
+		if replie.Delete {
+			replie.Content = ""
+			replies[replieIndex] = replie
+		}
+	}
 	return replies, nil
 }
 
@@ -170,5 +177,35 @@ func (s *topicReplyStore) GetByID(ctx context.Context, id string) (types.TopicRe
 		return types.TopicReply{}, err
 	}
 
+	return reply, nil
+}
+
+func (s *topicReplyStore) DeleteByID(ctx context.Context, id string) (types.TopicReply, error) {
+	objectID, err := primitive.ObjectIDFromHex(id)
+	if err != nil {
+		return types.TopicReply{}, err
+	}
+
+	filter := bson.M{"_id": objectID}
+
+	// Define update fields
+	updateFields := bson.M{
+		"$set": bson.M{
+			"delete": true,
+		},
+	}
+
+	// Update the document in the collection
+	_, err = s.Collection.UpdateOne(ctx, filter, updateFields)
+	if err != nil {
+		return types.TopicReply{}, err
+	}
+
+	var reply types.TopicReply
+	err = s.Collection.FindOne(ctx, bson.M{"_id": objectID}).Decode(&reply)
+	if err != nil {
+		return types.TopicReply{}, err
+	}
+	reply.Content = ""
 	return reply, nil
 }

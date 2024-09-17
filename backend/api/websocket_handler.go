@@ -173,11 +173,15 @@ func handleSentTopicReply(wsMessageBody types.WebSocketMessage) {
 	}
 
 	replie, err := Store.TopicReplies.Create(context.Background(), updatedReply)
-
 	if err != nil {
 		fmt.Println("Failed to create topic reply:", err)
 		return
 	}
+	sender, getUserErr := Store.User.GetByID(context.Background(), wsMessageBody.SenderID)
+	if getUserErr == nil {
+		replie.Sender = sender
+	}
+
 	sentMessage := types.WebSocketSentMessage{
 		Type: "recieves_topic_reply",
 		Data: replie,
@@ -197,26 +201,15 @@ func handleDeleteTopicReply(wsMessageBody types.WebSocketMessage) {
 	}
 
 	fmt.Printf("Mapped Data: %+v\n", replyData)
-	senderID, err := primitive.ObjectIDFromHex(wsMessageBody.SenderID)
-	if err != nil {
-		fmt.Println("Invalid SenderID format:", err)
-		return
-	}
-	updatedReply := types.CreateTopicReply{
-		TopicID:  wsMessageBody.RecipientID,
-		SentTime: time.Now(),
-		Content:  replyData.Content,
-		SenderID: senderID,
-	}
 
-	replie, err := Store.TopicReplies.Create(context.Background(), updatedReply)
+	replie, err := Store.TopicReplies.DeleteByID(context.Background(), wsMessageBody.RecipientID)
 
 	if err != nil {
 		fmt.Println("Failed to create topic reply:", err)
 		return
 	}
 	sentMessage := types.WebSocketSentMessage{
-		Type: "recieves_topic_reply",
+		Type: "update_topic_reply",
 		Data: replie,
 	}
 	broadcastTopicReply(replie.TopicID, sentMessage)
