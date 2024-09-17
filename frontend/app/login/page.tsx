@@ -1,27 +1,28 @@
 "use client";
 
+import { useState, useEffect } from "react";
+import { useAuth } from "../context/AuthContext";
 import { useRouter } from "next/navigation";
-import { useState } from "react";
-import { loginUser } from "../services/userService";
 
 const LoginPage = () => {
+  const { login, isAuthenticated } = useAuth(); // Access login and isAuthenticated from AuthContext
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState<string | null>(null);
   const router = useRouter();
 
+  useEffect(() => {
+    if (isAuthenticated) {
+      router.push("/topic"); // Redirect if already authenticated
+    }
+  }, [isAuthenticated]);
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
-      const { data } = await loginUser({ email, password });
-      if (data?.token) {
-        localStorage.setItem("token", data.token);
-        router.push("/topic");
-      } else {
-        setError("Invalid credentials");
-      }
-    } catch (err) {
-      setError("Something went wrong. Please try again.");
+      await login(email, password);
+    } catch (error) {
+      setError("Invalid credentials");
     }
   };
 

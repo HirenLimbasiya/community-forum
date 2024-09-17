@@ -1,25 +1,16 @@
-import { ApiResponse, postRequest } from "./apiService";
-
-interface CreateUser {
-  username: string;
-  password: string;
-  email: string;
-}
-
-interface LoginUser {
-  email: string;
-  password: string;
-}
-
-interface UserToken {
-  token: string;
-}
+import {
+  CreateUser,
+  LoginUser,
+  TokenResponse,
+  UserResponseData,
+} from "../types/user";
+import { ApiResponse, getRequest, postRequest } from "./apiService";
 
 export const createUser = async (
   payload: CreateUser
-): Promise<ApiResponse<UserToken>> => {
+): Promise<ApiResponse<TokenResponse>> => {
   // API call to create user
-  const response = await postRequest<UserToken, CreateUser>(
+  const response = await postRequest<TokenResponse, CreateUser>(
     "/registeruser",
     payload
   );
@@ -28,8 +19,16 @@ export const createUser = async (
 
 export const loginUser = async (
   payload: LoginUser
-): Promise<ApiResponse<UserToken>> => {
+): Promise<ApiResponse<TokenResponse>> => {
   // API call to login user
-  const response = await postRequest<UserToken, LoginUser>("/login", payload);
+  const response = await postRequest<TokenResponse, LoginUser>(
+    "/login",
+    payload
+  );
+  return response;
+};
+
+export const getLogdinUser = async (): Promise<ApiResponse<UserResponseData>> => {
+  const response = await getRequest<UserResponseData>("/user/me");
   return response;
 };

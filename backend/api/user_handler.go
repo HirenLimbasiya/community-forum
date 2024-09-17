@@ -10,6 +10,7 @@ import (
 
 func RegisterUserRoutes(app *fiber.App) {
 	app.Get("/api/users", handleGetUsers)
+	app.Get("/api/user/me", handleGetLoggedInUser)
 	app.Get("/api/user/:id", handleGetUser)
 	app.Patch("/api/user/:id", handleUpdateUser)
 	app.Delete("/api/user/:id", handleDeleteUser)
@@ -33,6 +34,20 @@ func handleGetUser(c *fiber.Ctx) error {
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": "Failed to get user"})
 	}
 	return c.JSON(user)
+}
+
+func handleGetLoggedInUser(c *fiber.Ctx) error {
+	user := c.Locals("user").(types.UserResponse)
+
+	userData, err := Store.User.GetByID(c.Context(), user.ID.Hex())
+	if err != nil {
+		if err == mongo.ErrNoDocuments {
+			return c.Status(fiber.StatusNotFound).JSON(fiber.Map{"error": "User not found"})
+		}
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": "Failed to get user"})
+	}
+
+	return c.JSON(userData)
 }
 
 func handleDeleteUser(c *fiber.Ctx) error {

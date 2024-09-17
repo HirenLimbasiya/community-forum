@@ -1,11 +1,20 @@
-import Header from "../components/Header";
+"use client"
 
-export default function TopicLayout({ children }: { children: React.ReactNode }) {
+import Header from "../components/Header";
+import ProtectedRoute from "../components/ProtectedRoute";
+
+export default function TopicLayout({
+  children,
+}: {
+  children: React.ReactNode;
+}) {
   return (
     <html lang="en">
       <body>
-        <Header />
-        <main>{children}</main>
+        <ProtectedRoute>
+          <Header />
+          <main>{children}</main>
+        </ProtectedRoute>
       </body>
     </html>
   );

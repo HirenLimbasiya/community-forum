@@ -1,38 +1,25 @@
 "use client";
 
-import { useState, useEffect } from "react";
-import { useRouter, useParams } from "next/navigation";
-import { Topic } from "@/app/types/topic";
 import RepliesContainer from "@/app/components/RepliesContainer";
+import { getTopicById } from "@/app/services/topicService";
+import { setSingleTopicInStore } from "@/app/slices/singleTopicSlice";
+import { useAppDispatch, useAppSelector } from "@/app/store/hooks";
+import { useParams } from "next/navigation";
+import { useEffect, useState } from "react";
 
 const TopicDetailPage = () => {
-  const [topic, setTopic] = useState<Topic | null>(null);
+  const { topic } = useAppSelector((state) => state.singleTopic);
+  const dispatch = useAppDispatch();
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const { id } = useParams(); // Extract topic ID from the URL
-  const router = useRouter();
-  const topicId = Array.isArray(id) ? id[0] : id; // Take the first value if it's an array
+  const topicId = Array.isArray(id) ? id[0] : id;
 
   useEffect(() => {
-    const token = localStorage.getItem("token");
-    if (!token) {
-      router.push("/login");
-      return;
-    }
-
-    // Ensure id is a string
-
-    // Simulate fetching topic data
     const fetchTopic = async () => {
       try {
-        // Simulated fetch - replace with actual fetch logic
-        const fetchedTopic = {
-          id: topicId,
-          title: "Sample Topic Title",
-          body: "This is the detailed body of the topic with ID " + topicId,
-          isClosed: false,
-        };
-        setTopic(fetchedTopic);
+        const { data } = await getTopicById(topicId);
+        dispatch(setSingleTopicInStore(data))
       } catch (error) {
         setError("Failed to fetch topic details.");
       } finally {
@@ -41,7 +28,7 @@ const TopicDetailPage = () => {
     };
 
     fetchTopic();
-  }, [id, router]);
+  }, [id]);
 
   // Centered loading message
   if (loading) {
@@ -78,12 +65,12 @@ const TopicDetailPage = () => {
         <p className="text-navy mb-6">{topic.body}</p>
         <span
           className={`absolute top-4 right-4 inline-block px-3 py-1 rounded-full text-sm font-semibold ${
-            topic.isClosed
+            topic.is_closed
               ? "bg-red-100 text-red-600"
               : "bg-green-100 text-green-600"
           }`}
         >
-          {topic.isClosed ? "Closed" : "Open"}
+          {topic.is_closed ? "Closed" : "Open"}
         </span>
         <RepliesContainer topicId={topicId} />
       </div>
