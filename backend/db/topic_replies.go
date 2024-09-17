@@ -47,7 +47,11 @@ func (s *topicReplyStore) Create(ctx context.Context, reply types.CreateTopicRep
 	return topicReply, nil
 }
 
-func (s *topicReplyStore) GetByTopicID(ctx context.Context, topicID string, userID primitive.ObjectID) ([]types.TopicReply, error) {
+func (s *topicReplyStore) GetByTopicID(
+	ctx context.Context,
+	topicID string,
+	userID primitive.ObjectID,
+) ([]types.TopicReply, error) {
 
 	pipeline := bson.A{
 		//filter replies by topic ID
@@ -126,12 +130,14 @@ func (s *topicReplyStore) GetByTopicID(ctx context.Context, topicID string, user
 			"reaction_count": "$reactions_data.total_reactions",
 			"user_reacted":   "$reactions_data.user_reacted",
 			"is_reacted": bson.M{
-			"$cond": bson.M{
-				"if":   bson.M{"$gt": bson.A{"$reactions_data.user_reacted", nil}}, // Check if user_reacted is not null
-				"then": true,
-				"else": false,
+				"$cond": bson.M{
+					"if": bson.M{
+						"$gt": bson.A{"$reactions_data.user_reacted", nil},
+					}, // Check if user_reacted is not null
+					"then": true,
+					"else": false,
+				},
 			},
-		},
 		}}},
 		//sort by their sent time
 		bson.D{{Key: "$sort", Value: bson.M{"sent_time": 1}}},
