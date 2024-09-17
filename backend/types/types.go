@@ -61,6 +61,7 @@ type CreateTopicReply struct {
 	SenderID primitive.ObjectID `json:"sender_id" bson:"sender_id"`
 	SentTime time.Time          `json:"sent_time" bson:"sent_time"`
 	Content  string             `json:"content"   bson:"content"`
+	Delete   bool               `json:"delete"    bson:"delete"`
 }
 type CreateTopicReplyFromParams struct {
 	Content string `json:"content" bson:"content"`

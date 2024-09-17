@@ -26,6 +26,7 @@ func NewTopicReplyStore(collection *mongo.Collection) TopicReplyStore {
 }
 
 func (s *topicReplyStore) Create(ctx context.Context, reply types.CreateTopicReply) (*types.TopicReply, error) {
+	reply.Delete = false
 	result, err := s.Collection.InsertOne(ctx, reply)
 	if err != nil {
 		return nil, err
