@@ -11,7 +11,7 @@ import (
 )
 
 type TopicReplyStore interface {
-	Create(ctx context.Context, reply types.CreateTopicReply) (string, error)
+	Create(ctx context.Context, reply types.CreateTopicReply) (*types.TopicReply, error)
 	GetByTopicID(ctx context.Context, topicID string, userID primitive.ObjectID) ([]types.TopicReply, error)
 	GetByID(ctx context.Context, id string) (types.TopicReply, error)
 }
@@ -24,16 +24,27 @@ func NewTopicReplyStore(collection *mongo.Collection) TopicReplyStore {
 	return &topicReplyStore{Collection: collection}
 }
 
-func (s *topicReplyStore) Create(ctx context.Context, reply types.CreateTopicReply) (string, error) {
+func (s *topicReplyStore) Create(ctx context.Context, reply types.CreateTopicReply) (*types.TopicReply, error) {
 	result, err := s.Collection.InsertOne(ctx, reply)
 	if err != nil {
-		return "", err
+		return nil, err
 	}
+
 	insertedID, ok := result.InsertedID.(primitive.ObjectID)
 	if !ok {
-		return "", mongo.ErrNilDocument
+		return nil, mongo.ErrNilDocument
 	}
-	return insertedID.Hex(), nil
+
+	// Create a TopicReply object by copying fields from CreateTopicReply
+	topicReply := &types.TopicReply{
+		ID:       insertedID,
+		TopicID:  reply.TopicID,
+		SentTime: reply.SentTime,
+		Content:  reply.Content,
+		SenderID: reply.SenderID,
+	}
+
+	return topicReply, nil
 }
 
 func (s *topicReplyStore) GetByTopicID(ctx context.Context, topicID string, userID primitive.ObjectID) ([]types.TopicReply, error) {

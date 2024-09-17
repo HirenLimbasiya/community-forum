@@ -1,4 +1,4 @@
-import { CreateTopic, Topic } from "../types/topic";
+import { CreateTopic, Topic, TopicReply } from "../types/topic";
 import {
   ApiResponse,
   deleteRequest,
@@ -26,4 +26,16 @@ export const deleteTopic = async (id: string): Promise<ApiResponse<null>> => {
 export const getTopicById = async (id: string): Promise<ApiResponse<Topic>> => {
   const response = await getRequest<Topic>(`/topic/${id}`);
   return response;
-}
+};
+
+export const getAllTopics = async (): Promise<ApiResponse<Topic[]>> => {
+  const response = await getRequest<Topic[]>("/topics");
+  return response;
+};
+
+export const getRepliesByTopicId = async (
+  id: string
+): Promise<ApiResponse<TopicReply[]>> => {
+  const response = await getRequest<TopicReply[]>(`/topic/${id}/replies`);
+  return response;
+};

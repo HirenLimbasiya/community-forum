@@ -1,9 +1,9 @@
 import { PayloadAction, createSlice } from "@reduxjs/toolkit";
-import { Topic } from "../types/topic";
+import { Topic, TopicReply } from "../types/topic";
 
 interface SingleTopicState {
   topic: Topic;
-  replies: string[];
+  replies: TopicReply[];
 }
 
 const initialState: SingleTopicState = {
@@ -24,10 +24,10 @@ const singleTopicSlice = createSlice({
     setSingleTopicInStore(state, action: PayloadAction<Topic>) {
       state.topic = action.payload;
     },
-    setTopicRepliesInStore(state, action: PayloadAction<string[]>) {
+    setTopicRepliesInStore(state, action: PayloadAction<TopicReply[]>) {
       state.replies = action.payload;
     },
-    addSingleTopicReplyToStore(state, action: PayloadAction<string>) {
+    addSingleTopicReplyToStore(state, action: PayloadAction<TopicReply>) {
       state.replies.push(action.payload);
     },
   },

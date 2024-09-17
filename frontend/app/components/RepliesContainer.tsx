@@ -2,16 +2,20 @@
 "use client";
 
 import { useEffect } from "react";
-import { sendSocketMessage } from "../lib/socket";
-import { useAppSelector } from "../store/hooks";
+import { SocketSendMessage, sendSocketMessage } from "../lib/socket";
+import { useAppDispatch, useAppSelector } from "../store/hooks";
 import ReplyInput from "./ReplyInput";
+import { CreateTopicReply } from "../types/topic";
+import { getRepliesByTopicId } from "../services/topicService";
+import { setTopicRepliesInStore } from "../slices/singleTopicSlice";
+import RepliesList from "./RepliesList";
 
 interface RepliesContainerProps {
   topicId: string;
 }
 
 const RepliesContainer = ({ topicId }: RepliesContainerProps) => {
-  // const dispatch = useAppDispatch(); // Use typed dispatch
+  const dispatch = useAppDispatch(); // Use typed dispatch
   const { replies } = useAppSelector((state) => state.singleTopic); // Use typed selector
   // const [replies, setReplies] = useState<TopicReply[]>([]);
   // const [loading, setLoading] = useState(true);
@@ -21,35 +25,40 @@ const RepliesContainer = ({ topicId }: RepliesContainerProps) => {
   const decodedPayload = JSON.parse(atob(payload)); // Decode base64 and parse JSON
 
   const userId = decodedPayload.id;
+
   const handleSendReply = (content: string) => {
-    sendSocketMessage({
-      type: "message", // Message type
-      sender_id: userId,
-      recipient_id: topicId, // Topic ID as the recipient
-      content: {
-        message: content, // Message content
+    const message: SocketSendMessage<CreateTopicReply> = {
+      type: "send_topic_reply",
+      recipient_id: topicId,
+      data: {
+        content: content,
       },
-    });
+    };
+
+    sendSocketMessage(message);
   };
-  console.log(topicId);
 
   useEffect(() => {
     sendSocketMessage({
       type: "join_to_topic",
-      sender_id: userId,
       recipient_id: topicId,
-      content: {
-        message: "",
-      },
     });
+
+    const fetchReplies = async () => {
+      try {
+        const { data } = await getRepliesByTopicId(topicId);
+        dispatch(setTopicRepliesInStore(data || []));
+      } catch (error) {
+        console.error(error);
+      }
+    };
+
+    fetchReplies();
+
     return () => {
       sendSocketMessage({
         type: "leave_from_topic",
-        sender_id: userId,
         recipient_id: topicId,
-        content: {
-          message: "",
-        },
       });
     };
   }, []);
@@ -64,10 +73,10 @@ const RepliesContainer = ({ topicId }: RepliesContainerProps) => {
 
   return (
     <div className="flex flex-col h-full">
-      {/* <RepliesList replies={replies} loggedInUserId="user_id_2" /> */}
-      {replies.map((reply) => (
+      <RepliesList replies={replies} loggedInUserId={userId} />
+      {/* {replies.map((reply) => (
         <div key={reply}>{reply}</div>
-      ))}
+      ))} */}
       <ReplyInput onSend={handleSendReply} />
     </div>
   );

@@ -25,24 +25,16 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
   const [isCalled, setIsCalled] = useState<boolean>(false);
   const router = useRouter();
 
-  const setUpSocket = (token: string | null) => {
-    if (token) {
-      const payload = token.split(".")[1]; // Get the payload part of the JWT
-      const decodedPayload = JSON.parse(atob(payload)); // Decode base64 and parse JSON
-
-      const userId = decodedPayload.id; // Replace 'id' with the actual key for user ID in your token
-
-      console.log("User ID:", userId); 
-      connectSocket(userId);
-    }
-
+  const setUpSocket = () => {
+      //may be more thing come
+      connectSocket();
   };
 
   useEffect(() => {
     const token = localStorage.getItem("token");
     const isAuthenticated = Boolean(token);
     if (isAuthenticated) {
-      setUpSocket(token);
+      setUpSocket();
     }
     setIsAuthenticated(isAuthenticated);
     setIsCalled(true);
@@ -53,7 +45,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
       const { data } = await loginUser({ email, password });
       if (data?.token) {
         localStorage.setItem("token", data.token);
-        setUpSocket(data.token);
+        setUpSocket();
         setIsAuthenticated(true);
         router.push("/topic");
       } else {
@@ -80,7 +72,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
       const { data } = await createUser({ username, email, password });
       if (data?.token) {
         localStorage.setItem("token", data.token);
-        setUpSocket(data.token);
+        setUpSocket();
         setIsAuthenticated(true);
         router.push("/topic");
       } else {

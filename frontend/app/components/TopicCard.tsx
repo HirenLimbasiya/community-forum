@@ -2,14 +2,13 @@ import { useRouter } from "next/navigation";
 import { Topic } from "../types/topic";
 import { useState } from "react";
 
-const TopicCard = ({ id, title, body, is_closed, created_by }: Topic) => {
+const TopicCard = ({ id, title, body, is_closed }: Topic) => {
   const router = useRouter();
 
   const handleClick = () => {
     router.push(`/topic/${id}`); // Navigate to topic detail page
   };
-  console.log(created_by);
-  
+
   return (
     <div
       onClick={handleClick}

@@ -15,15 +15,18 @@ const ReplyCard = ({
   reply,
   loggedInUserId,
 }: ReplyCardProps) => {
-  const isSender = reply.sender.id === loggedInUserId; // Check if the logged-in user is the sender
+  
+  
   const [isHovered, setIsHovered] = useState(false); // State to manage hover
-  const [userReaction, setUserReaction] = useState(reply.userReacted.reaction); // Track user reaction
-
+  const [userReaction, setUserReaction] = useState(reply.user_reacted?.reaction || ""); // Track user reaction
+  const isSender = reply.sender_id === loggedInUserId; // Check if the logged-in user is the sender
+  
   const handleReaction = (reaction: string) => {
     setUserReaction(reaction);
     // Here you would also call a function to handle the reaction in the backend
   };
 
+  
   return (
     <div
       className={`bg-white rounded-lg p-4 shadow-md relative hover:bg-gray-50 transition duration-200 ease-in-out ${
@@ -53,11 +56,11 @@ const ReplyCard = ({
       </div>
 
       <div className="mt-2 flex items-center">
-        {reply.reactionCount > 0 && (
+        {reply.reaction_count > 0 && (
           <span className=" text-blue-600 rounded-full py-1 text-xs flex items-center">
-            {reply.reactionCount} reaction{reply.reactionCount > 1 ? "s" : ""}
+            {reply.reaction_count} reaction{reply.reaction_count > 1 ? "s" : ""}
             <div className="flex space-x-1 ml-2">
-              {reply.topReactions.map((reaction, index) => (
+              {reply.top_reactions?.map((reaction, index) => (
                 <span
                   key={index}
                   className="bg-gray-200 rounded-full px-2 py-1 text-xs"
@@ -71,7 +74,8 @@ const ReplyCard = ({
       </div>
 
       <span className="absolute bottom-2 right-2 text-gray-400 text-xs">
-        {new Date(reply.sentTime).toLocaleString()}
+        {new Date(reply.sent_time).toLocaleString()}
+        
       </span>
       {isHovered && <ReplyActions isSender={isSender} />}
     </div>

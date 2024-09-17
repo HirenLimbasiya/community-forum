@@ -90,11 +90,13 @@ type UpdateReaction struct {
 
 type WebSocketMessage struct {
 	Type        string                 `json:"type"         bson:"type"`
+	SessionId string `json:"session_id" bson:"session_id"`
 	SenderID    string                 `json:"sender_id"    bson:"sender_id"`
 	RecipientID string                 `json:"recipient_id" bson:"recipient_id"`
-	Content     Content `json:"content"      bson:"content"`
+	Data     map[string]interface{} `json:"data"      bson:"data"`
 }
 
-type Content struct {
-	Message string `json:"message" bson:"message"`
+type WebSocketSentMessage struct {
+	Type        string                 `json:"type"         bson:"type"`
+	Data interface{} `json:"data" bson:"data"`
 }

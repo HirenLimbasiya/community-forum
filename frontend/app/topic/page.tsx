@@ -1,31 +1,23 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
 import TopicCard from "../components/TopicCard";
-import { Topic } from "../types/topic";
+import { getAllTopics } from "../services/topicService";
+import { setTopicsInStore } from "../slices/topicsSlice";
+import { useAppDispatch, useAppSelector } from "../store/hooks";
 
 const TopicPage = () => {
-  const [topics, setTopics] = useState<Topic[]>([]);
+  const { topics } = useAppSelector((state) => state.topics);
+  const dispatch = useAppDispatch();
 
   useEffect(() => {
     const fetchTopics = async () => {
-      const fetchedTopics: Topic[] = [
-        {
-          id: "1",
-          title: "First Topic",
-          body: "This is the body of the first topic.",
-          is_closed: false,
-          created_by: "",
-        },
-        {
-          id: "2",
-          title: "Second Topic",
-          body: "This is the body of the second topic.",
-          is_closed: true,
-          created_by: "",
-        },
-      ];
-      setTopics(fetchedTopics);
+      try {
+        const { data } = await getAllTopics();
+        dispatch(setTopicsInStore(data || []));
+      } catch (error) {
+        console.error(error);
+      }
     };
     fetchTopics();
   }, []);
