@@ -14,6 +14,7 @@ type TopicReplyStore interface {
 	Create(ctx context.Context, reply types.CreateTopicReply) (*types.TopicReply, error)
 	GetByTopicID(ctx context.Context, topicID string, userID primitive.ObjectID) ([]types.TopicReply, error)
 	GetByID(ctx context.Context, id string) (types.TopicReply, error)
+	DeleteByID(ctx context.Context, id string) (types.TopicReply, error)
 }
 
 type topicReplyStore struct {
@@ -25,6 +26,7 @@ func NewTopicReplyStore(collection *mongo.Collection) TopicReplyStore {
 }
 
 func (s *topicReplyStore) Create(ctx context.Context, reply types.CreateTopicReply) (*types.TopicReply, error) {
+	reply.Delete = false
 	result, err := s.Collection.InsertOne(ctx, reply)
 	if err != nil {
 		return nil, err
@@ -47,7 +49,11 @@ func (s *topicReplyStore) Create(ctx context.Context, reply types.CreateTopicRep
 	return topicReply, nil
 }
 
-func (s *topicReplyStore) GetByTopicID(ctx context.Context, topicID string, userID primitive.ObjectID) ([]types.TopicReply, error) {
+func (s *topicReplyStore) GetByTopicID(
+	ctx context.Context,
+	topicID string,
+	userID primitive.ObjectID,
+) ([]types.TopicReply, error) {
 
 	pipeline := bson.A{
 		//filter replies by topic ID
@@ -126,12 +132,14 @@ func (s *topicReplyStore) GetByTopicID(ctx context.Context, topicID string, user
 			"reaction_count": "$reactions_data.total_reactions",
 			"user_reacted":   "$reactions_data.user_reacted",
 			"is_reacted": bson.M{
-			"$cond": bson.M{
-				"if":   bson.M{"$gt": bson.A{"$reactions_data.user_reacted", nil}}, // Check if user_reacted is not null
-				"then": true,
-				"else": false,
+				"$cond": bson.M{
+					"if": bson.M{
+						"$gt": bson.A{"$reactions_data.user_reacted", nil},
+					}, // Check if user_reacted is not null
+					"then": true,
+					"else": false,
+				},
 			},
-		},
 		}}},
 		//sort by their sent time
 		bson.D{{Key: "$sort", Value: bson.M{"sent_time": 1}}},
@@ -149,6 +157,12 @@ func (s *topicReplyStore) GetByTopicID(ctx context.Context, topicID string, user
 		return nil, err
 	}
 
+	for replieIndex, replie := range replies {
+		if replie.Delete {
+			replie.Content = ""
+			replies[replieIndex] = replie
+		}
+	}
 	return replies, nil
 }
 
@@ -164,5 +178,35 @@ func (s *topicReplyStore) GetByID(ctx context.Context, id string) (types.TopicRe
 		return types.TopicReply{}, err
 	}
 
+	return reply, nil
+}
+
+func (s *topicReplyStore) DeleteByID(ctx context.Context, id string) (types.TopicReply, error) {
+	objectID, err := primitive.ObjectIDFromHex(id)
+	if err != nil {
+		return types.TopicReply{}, err
+	}
+
+	filter := bson.M{"_id": objectID}
+
+	// Define update fields
+	updateFields := bson.M{
+		"$set": bson.M{
+			"delete": true,
+		},
+	}
+
+	// Update the document in the collection
+	_, err = s.Collection.UpdateOne(ctx, filter, updateFields)
+	if err != nil {
+		return types.TopicReply{}, err
+	}
+
+	var reply types.TopicReply
+	err = s.Collection.FindOne(ctx, bson.M{"_id": objectID}).Decode(&reply)
+	if err != nil {
+		return types.TopicReply{}, err
+	}
+	reply.Content = ""
 	return reply, nil
 }

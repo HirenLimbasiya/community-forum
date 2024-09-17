@@ -14,8 +14,8 @@ type TopicStore interface {
 	Get(ctx context.Context) ([]types.Topic, error)
 	Create(ctx context.Context, topic types.CreateTopic) (types.Topic, error)
 	GetByID(ctx context.Context, id string) (types.Topic, error)
-	UpdateByID(ctx context.Context, id string, topic types.CreateTopic) (error)
-	DeleteByID(ctx context.Context, id string) (error)
+	UpdateByID(ctx context.Context, id string, topic types.CreateTopic) error
+	DeleteByID(ctx context.Context, id string) error
 	GetByUserID(ctx context.Context, userID primitive.ObjectID) ([]types.Topic, error)
 }
 

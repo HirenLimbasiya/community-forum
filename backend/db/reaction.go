@@ -16,8 +16,18 @@ type ReactionStore interface {
 	GetByID(ctx context.Context, id string) (types.Reaction, error)
 	DeleteByID(ctx context.Context, id string) error
 	UpdateByID(ctx context.Context, id string, reaction types.UpdateReaction) error
-	CheckUserReactWithTypeAndSourceID(ctx context.Context, reactionType string, sourceID primitive.ObjectID, userID primitive.ObjectID) (bool, error)
-	GetByUserAndSource(ctx context.Context, reactionType string, sourceID primitive.ObjectID, userID primitive.ObjectID) (*types.Reaction, error)
+	CheckUserReactWithTypeAndSourceID(
+		ctx context.Context,
+		reactionType string,
+		sourceID primitive.ObjectID,
+		userID primitive.ObjectID,
+	) (bool, error)
+	GetByUserAndSource(
+		ctx context.Context,
+		reactionType string,
+		sourceID primitive.ObjectID,
+		userID primitive.ObjectID,
+	) (*types.Reaction, error)
 }
 
 type reactionStore struct {
@@ -115,7 +125,12 @@ func (s *reactionStore) UpdateByID(ctx context.Context, id string, fields types.
 	return nil
 }
 
-func (s *reactionStore) CheckUserReactWithTypeAndSourceID(ctx context.Context, reactionType string, sourceID primitive.ObjectID, userID primitive.ObjectID) (bool, error) {
+func (s *reactionStore) CheckUserReactWithTypeAndSourceID(
+	ctx context.Context,
+	reactionType string,
+	sourceID primitive.ObjectID,
+	userID primitive.ObjectID,
+) (bool, error) {
 	filter := bson.M{
 		"type":      reactionType,
 		"source_id": sourceID,
@@ -130,22 +145,27 @@ func (s *reactionStore) CheckUserReactWithTypeAndSourceID(ctx context.Context, r
 	return count > 0, nil
 }
 
-func (s *reactionStore) GetByUserAndSource(ctx context.Context, reactionType string, sourceID primitive.ObjectID, userID primitive.ObjectID) (*types.Reaction, error) {
-    filter := bson.M{
-        "type":      reactionType,
-        "source_id": sourceID,
-        "user_id":   userID,
-    }
+func (s *reactionStore) GetByUserAndSource(
+	ctx context.Context,
+	reactionType string,
+	sourceID primitive.ObjectID,
+	userID primitive.ObjectID,
+) (*types.Reaction, error) {
+	filter := bson.M{
+		"type":      reactionType,
+		"source_id": sourceID,
+		"user_id":   userID,
+	}
 
-    var reaction types.Reaction
-    err := s.Collection.FindOne(ctx, filter).Decode(&reaction)
-    
-    if err != nil {
-        if err == mongo.ErrNoDocuments {
-            return nil, nil 
-        }
-        return nil, err
-    }
+	var reaction types.Reaction
+	err := s.Collection.FindOne(ctx, filter).Decode(&reaction)
 
-    return &reaction, nil
+	if err != nil {
+		if err == mongo.ErrNoDocuments {
+			return nil, nil
+		}
+		return nil, err
+	}
+
+	return &reaction, nil
 }

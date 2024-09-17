@@ -51,6 +51,8 @@ func handleWebSocket(c *websocket.Conn) {
 			handleLeaveFromTopic(wsMessageBody.SessionId)
 		case "send_topic_reply":
 			handleSentTopicReply(wsMessageBody)
+		case "delete_topic_reply":
+			handleDeleteTopicReply(wsMessageBody)
 		default:
 			WSConnectionManager.BroadcastMessage(wsMessageBody)
 		}
@@ -120,7 +122,7 @@ func (cm *ConnectionManager) BroadcastMessage(wsMessageBody types.WebSocketMessa
 }
 
 func handleJoinToTopic(sessionId string, topicID string) {
-	global.UserActiveInTopic[sessionId] = topicID 
+	global.UserActiveInTopic[sessionId] = topicID
 	global.GlobalTopic[topicID] = append(global.GlobalTopic[topicID], sessionId)
 
 	log.Printf("User %s joined topic %s. Current users in topic: %v\n", sessionId, topicID, global.GlobalTopic[topicID])
@@ -133,7 +135,12 @@ func handleLeaveFromTopic(sessionId string) {
 		for i, id := range users {
 			if id == sessionId {
 				global.GlobalTopic[topicID] = append(users[:i], users[i+1:]...) // Remove the user by slicing
-				log.Printf("User %s left topic %s. Current users in topic: %v\n", sessionId, topicID, global.GlobalTopic[topicID])
+				log.Printf(
+					"User %s left topic %s. Current users in topic: %v\n",
+					sessionId,
+					topicID,
+					global.GlobalTopic[topicID],
+				)
 				return
 			}
 		}
@@ -143,7 +150,7 @@ func handleLeaveFromTopic(sessionId string) {
 
 func handleSentTopicReply(wsMessageBody types.WebSocketMessage) {
 	var replyData types.CreateTopicReplyFromParams
-	
+
 	fmt.Printf("wsMessageBody.Data: %+v\n", wsMessageBody.Data)
 
 	err := mapToStruct(wsMessageBody.Data, &replyData)
@@ -151,7 +158,7 @@ func handleSentTopicReply(wsMessageBody types.WebSocketMessage) {
 		fmt.Println("Failed to map to CreateTopicReply:", err)
 		return
 	}
-	
+
 	fmt.Printf("Mapped Data: %+v\n", replyData)
 	senderID, err := primitive.ObjectIDFromHex(wsMessageBody.SenderID)
 	if err != nil {
@@ -166,39 +173,69 @@ func handleSentTopicReply(wsMessageBody types.WebSocketMessage) {
 	}
 
 	replie, err := Store.TopicReplies.Create(context.Background(), updatedReply)
+	if err != nil {
+		fmt.Println("Failed to create topic reply:", err)
+		return
+	}
+	sender, getUserErr := Store.User.GetByID(context.Background(), wsMessageBody.SenderID)
+	if getUserErr == nil {
+		replie.Sender = sender
+	}
+
+	sentMessage := types.WebSocketSentMessage{
+		Type: "recieves_topic_reply",
+		Data: replie,
+	}
+	broadcastTopicReply(replie.TopicID, sentMessage)
+}
+
+func handleDeleteTopicReply(wsMessageBody types.WebSocketMessage) {
+	var replyData types.CreateTopicReplyFromParams
+
+	fmt.Printf("wsMessageBody.Data: %+v\n", wsMessageBody.Data)
+
+	err := mapToStruct(wsMessageBody.Data, &replyData)
+	if err != nil {
+		fmt.Println("Failed to map to CreateTopicReply:", err)
+		return
+	}
+
+	fmt.Printf("Mapped Data: %+v\n", replyData)
+
+	replie, err := Store.TopicReplies.DeleteByID(context.Background(), wsMessageBody.RecipientID)
 
 	if err != nil {
 		fmt.Println("Failed to create topic reply:", err)
 		return
 	}
 	sentMessage := types.WebSocketSentMessage{
-		Type: "recieves_topic_reply",
-		Data:  replie,
+		Type: "update_topic_reply",
+		Data: replie,
 	}
 	broadcastTopicReply(replie.TopicID, sentMessage)
 }
 
 func broadcastTopicReply(topicID string, wsMessage types.WebSocketSentMessage) {
 	users, exists := global.GlobalTopic[topicID]
-    if!exists {
-        log.Printf("No users are connected to topic %s.\n", topicID)
-        return
-    }
-    for _, id := range users {
-            marshalData, err := json.Marshal(wsMessage)
-            if err!= nil {
-                log.Fatalf("Error converting struct to []byte: %v", err)
-            }
-            if err := WSConnectionManager.SendMessageToUser(id, marshalData); err!= nil {
-                log.Printf("Error sending WebSocket message to user %s: %v\n", id, err)
-            }
-    }
+	if !exists {
+		log.Printf("No users are connected to topic %s.\n", topicID)
+		return
+	}
+	for _, id := range users {
+		marshalData, err := json.Marshal(wsMessage)
+		if err != nil {
+			log.Fatalf("Error converting struct to []byte: %v", err)
+		}
+		if err := WSConnectionManager.SendMessageToUser(id, marshalData); err != nil {
+			log.Printf("Error sending WebSocket message to user %s: %v\n", id, err)
+		}
+	}
 }
 
 func mapToStruct(data map[string]interface{}, result interface{}) error {
-    jsonData, err := json.Marshal(data)
-    if err != nil {
-        return err
-    }
-    return json.Unmarshal(jsonData, result)
+	jsonData, err := json.Marshal(data)
+	if err != nil {
+		return err
+	}
+	return json.Unmarshal(jsonData, result)
 }

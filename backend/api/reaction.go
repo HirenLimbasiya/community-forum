@@ -67,31 +67,30 @@ func handleCreateReaction(c *fiber.Ctx) error {
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "Invalid source ID for the given type"})
 	}
 
-
 	sourceyObjID, err := primitive.ObjectIDFromHex(reaction.SourceID)
 	if err != nil {
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "Invalid reply ID"})
 	}
 
 	// Check if the user has already reacted with the given type and source ID
-    existingReaction, err := Store.Reactions.GetByUserAndSource(c.Context(), reaction.Type, sourceyObjID, user.ID)
-    if err != nil && err != mongo.ErrNoDocuments {
-        return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": "Failed to check user reaction"})
-    }
+	existingReaction, err := Store.Reactions.GetByUserAndSource(c.Context(), reaction.Type, sourceyObjID, user.ID)
+	if err != nil && err != mongo.ErrNoDocuments {
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": "Failed to check user reaction"})
+	}
 
 	if existingReaction != nil {
-        updateData := types.UpdateReaction{
-			Reaction: reaction.Reaction,
-			SourceID: sourceyObjID,
-			Type: reaction.Type,
-            ReactedAt: time.Now(),
+		updateData := types.UpdateReaction{
+			Reaction:  reaction.Reaction,
+			SourceID:  sourceyObjID,
+			Type:      reaction.Type,
+			ReactedAt: time.Now(),
 		}
-        err := Store.Reactions.UpdateByID(c.Context(), existingReaction.ID.Hex(), updateData)
-        if err != nil {
-            return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": "Failed to update reaction"})
-        }
-        return c.JSON(fiber.Map{"message": "Reaction updated"})
-    }
+		err := Store.Reactions.UpdateByID(c.Context(), existingReaction.ID.Hex(), updateData)
+		if err != nil {
+			return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": "Failed to update reaction"})
+		}
+		return c.JSON(fiber.Map{"message": "Reaction updated"})
+	}
 
 	reactionDoc := types.Reaction{
 		SourceID:  sourceyObjID,
@@ -111,28 +110,28 @@ func handleCreateReaction(c *fiber.Ctx) error {
 
 func handleDeleteReaction(c *fiber.Ctx) error {
 	// Get the reaction ID from the URL parameters
-    reactionID := c.Params("id")
+	reactionID := c.Params("id")
 
-    // Delete the reaction from the database
-    err := Store.Reactions.DeleteByID(c.Context(), reactionID)
-    if err != nil {
-        if err == mongo.ErrNoDocuments {
-            return c.Status(fiber.StatusNotFound).JSON(fiber.Map{"error": "Reaction not found"})
-        }
-        return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": "Failed to delete reaction"})
-    }
+	// Delete the reaction from the database
+	err := Store.Reactions.DeleteByID(c.Context(), reactionID)
+	if err != nil {
+		if err == mongo.ErrNoDocuments {
+			return c.Status(fiber.StatusNotFound).JSON(fiber.Map{"error": "Reaction not found"})
+		}
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": "Failed to delete reaction"})
+	}
 
-    // Return success message
-    return c.JSON(fiber.Map{"message": "Reaction deleted successfully"})
+	// Return success message
+	return c.JSON(fiber.Map{"message": "Reaction deleted successfully"})
 }
 
 func handleGetAllReactions(c *fiber.Ctx) error {
 	reactions, err := Store.Reactions.Get(c.Context())
-    if err != nil {
-        return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": "Failed to retrieve reactions"})
-    }
+	if err != nil {
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": "Failed to retrieve reactions"})
+	}
 
-    return c.JSON(fiber.Map{"data": reactions})
+	return c.JSON(fiber.Map{"data": reactions})
 }
 
 // func handleGetReactions(c *fiber.Ctx) error {
