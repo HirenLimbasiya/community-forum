@@ -26,8 +26,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
   const router = useRouter();
 
   const setUpSocket = () => {
-      //may be more thing come
-      connectSocket();
+    //may be more thing come
+    connectSocket();
   };
 
   useEffect(() => {

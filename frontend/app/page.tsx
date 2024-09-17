@@ -15,6 +15,7 @@ const HomePage = () => {
     if (isAuthenticated) {
       router.push("/topic"); // Redirect if already authenticated
     }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isAuthenticated]);
   return (
     <div>

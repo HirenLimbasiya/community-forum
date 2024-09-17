@@ -1,4 +1,3 @@
-// apiService.ts
 import axios, { AxiosError, AxiosResponse } from "axios";
 
 const NEXT_PUBLIC_API_URL = process.env.NEXT_PUBLIC_API_URL;
@@ -10,13 +9,29 @@ export interface ApiResponse<T> {
   error?: string;
 }
 
+// Create axios instance
 const axiosInstance = axios.create({
   baseURL: NEXT_PUBLIC_API_URL + API_PREFIX,
   headers: {
     "Content-Type": "application/json",
-    Authorization: "Bearer " + localStorage.getItem("token"),
   },
 });
+
+// Request interceptor to add Authorization header dynamically
+axiosInstance.interceptors.request.use(
+  (config) => {
+    if (typeof window !== "undefined") {
+      const token = localStorage.getItem("token");
+      if (token) {
+        config.headers.Authorization = `Bearer ${token}`;
+      }
+    }
+    return config;
+  },
+  (error) => {
+    return Promise.reject(error);
+  }
+);
 
 // Response interceptor to handle successful responses
 axiosInstance.interceptors.response.use(
