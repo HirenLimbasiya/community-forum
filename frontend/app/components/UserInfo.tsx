@@ -1,5 +1,6 @@
-import React from "react";
+import React, { MouseEvent } from "react";
 import { UserResponse } from "../types/topic";
+import { useRouter } from "next/navigation";
 
 interface UserInfoProps {
   user: UserResponse;
@@ -8,10 +9,16 @@ interface UserInfoProps {
 }
 
 const UserInfo = ({ user, isSender, onClick }: UserInfoProps) => {
-  const handleClick = () => {
+  const router = useRouter();
+  const handleClick = (e: MouseEvent<HTMLDivElement>) => {
+    e.stopPropagation(); // Prevent the click event from propagating
+
     if (onClick) {
-      onClick(user.id); // Call the onClick function with the user ID
+      onClick(user.id);
+      return;
     }
+
+    router.push(`/profile/${user.id}`);
   };
 
   return (

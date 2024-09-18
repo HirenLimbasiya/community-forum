@@ -12,11 +12,10 @@ interface ReplyCardProps {
   reply: TopicReply;
   loggedInUserId: string;
 }
-
 const ReplyCard = ({ reply, loggedInUserId }: ReplyCardProps) => {
   const [isHovered, setIsHovered] = useState(false);
-  const [isEditing, setIsEditing] = useState(false); // State for editing mode
-  const [editContent, setEditContent] = useState(reply.content); // State to track the edited content
+  const [isEditing, setIsEditing] = useState(false);
+  const [editContent, setEditContent] = useState(reply.content);
 
   const isSender = reply.sender_id === loggedInUserId;
 
@@ -35,7 +34,7 @@ const ReplyCard = ({ reply, loggedInUserId }: ReplyCardProps) => {
         sendSocketMessage(deleteMessage);
         break;
       case "edit":
-        setIsEditing(true); // Enable editing mode
+        setIsEditing(true);
         break;
       default:
         break;
@@ -43,7 +42,6 @@ const ReplyCard = ({ reply, loggedInUserId }: ReplyCardProps) => {
   };
 
   const handleSaveEdit = () => {
-    // Function to save the edited reply
     const message: SocketSendMessage = {
       type: "edit_topic_reply",
       recipient_id: reply.id,
@@ -52,12 +50,12 @@ const ReplyCard = ({ reply, loggedInUserId }: ReplyCardProps) => {
       },
     };
     sendSocketMessage(message);
-    setIsEditing(false); // Disable editing mode after saving
+    setIsEditing(false);
   };
 
   const handleCancelEdit = () => {
-    setIsEditing(false); // Cancel editing mode
-    setEditContent(reply.content); // Reset content to the original
+    setIsEditing(false);
+    setEditContent(reply.content);
   };
 
   return (
@@ -71,7 +69,11 @@ const ReplyCard = ({ reply, loggedInUserId }: ReplyCardProps) => {
       {/* Use the new UserInfo component here */}
       <UserInfo user={reply.sender as UserResponse} isSender={isSender} />
 
-      {isEditing ? (
+      {reply.delete ? (
+        <p className="text-gray-500 italic my-2">
+          This message is no longer available.
+        </p>
+      ) : isEditing ? (
         <div>
           <textarea
             className="w-full p-2 border border-gray-300 rounded mb-1"
@@ -99,19 +101,26 @@ const ReplyCard = ({ reply, loggedInUserId }: ReplyCardProps) => {
         </p>
       )}
 
-      <div className="mt-2 flex items-center">
-        <Reactions
-          reactions={reply.reactions}
-          onReactionChange={handleReaction}
-        />
-      </div>
+      {!reply.delete && (
+        <>
+          <div className="mt-2 flex items-center">
+            <Reactions
+              reactions={reply.reactions}
+              onReactionChange={handleReaction}
+            />
+          </div>
 
-      <span className="absolute bottom-2 right-2 text-gray-400 text-xs">
-        {new Date(reply.sent_time).toLocaleString()}
-      </span>
+          <div className="absolute bottom-2 right-2 flex items-center space-x-1 text-xs text-gray-400">
+            <span>{new Date(reply.sent_time).toLocaleString()}</span>
+            {reply.is_edited && (
+              <span className="text-blue-500 italic">(Edited)</span>
+            )}
+          </div>
 
-      {isHovered && !isEditing && (
-        <ReplyActions isSender={isSender} onClick={handleActionsReply} />
+          {isHovered && !isEditing && (
+            <ReplyActions isSender={isSender} onClick={handleActionsReply} />
+          )}
+        </>
       )}
     </div>
   );
@@ -125,7 +134,7 @@ interface ReactionsProps {
 const Reactions = ({ reactions, onReactionChange }: ReactionsProps) => {
   return (
     <>
-      {reactions.length > 0 && (
+      {reactions?.length > 0 && (
         <div className="text-blue-600 rounded-full py-1 text-xs flex items-center">
           <div className="flex space-x-1">
             {reactions.map((reactionGroup) => (

@@ -5,6 +5,7 @@ import (
 	"strings"
 
 	"github.com/gofiber/fiber/v2"
+	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
 )
 
@@ -15,6 +16,7 @@ func RegisterTopicRoutes(app *fiber.App) {
 	app.Patch("/api/topic/:id", handleUpdateTopic)
 	app.Delete("/api/topic/:id", handleDeleteTopic)
 	app.Get("/api/topics/user", handleGetTopicsByUser)
+	app.Get("/api/topics/user/:userId", handleGetAllTopicsByUserID) // New endpoint
 }
 
 func handleGetTopics(c *fiber.Ctx) error {
@@ -117,6 +119,7 @@ func handleUpdateTopic(c *fiber.Ctx) error {
 	// Return success message
 	return c.JSON(fiber.Map{"message": "Topic updated successfully"})
 }
+
 func handleGetTopicsByUser(c *fiber.Ctx) error {
 	// Get user from context (assumed to be set by auth middleware)
 	user := c.Locals("user").(types.UserResponse)
@@ -124,6 +127,30 @@ func handleGetTopicsByUser(c *fiber.Ctx) error {
 
 	// Retrieve topics created by this user from the database
 	topics, err := Store.Topic.GetByUserID(c.Context(), userID)
+	if err != nil {
+		if err == mongo.ErrNoDocuments {
+			return c.Status(fiber.StatusNotFound).JSON(fiber.Map{"error": "No topics found for this user"})
+		}
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": "Failed to get topics"})
+	}
+
+	// Return the retrieved topics
+	return c.JSON(topics)
+}
+
+// New handler to get topics by user ID from the URL parameter
+func handleGetAllTopicsByUserID(c *fiber.Ctx) error {
+	// Get user ID from URL parameters
+	userID := c.Params("userId")
+
+	// Convert userID to primitive.ObjectID
+	objectID, err := primitive.ObjectIDFromHex(userID)
+	if err != nil {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "Invalid user ID format"})
+	}
+
+	// Retrieve topics created by the specified user from the database
+	topics, err := Store.Topic.GetByUserID(c.Context(), objectID)
 	if err != nil {
 		if err == mongo.ErrNoDocuments {
 			return c.Status(fiber.StatusNotFound).JSON(fiber.Map{"error": "No topics found for this user"})

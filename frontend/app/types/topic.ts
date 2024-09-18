@@ -45,6 +45,7 @@ export interface TopicReply {
   sender: UserResponse;
   delete: boolean;
   reactions: ReactionGroup[];
+  is_edited: boolean;
 }
 
 export interface ReactionGroup {
