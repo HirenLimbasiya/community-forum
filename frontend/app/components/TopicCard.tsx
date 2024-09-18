@@ -1,9 +1,16 @@
 import { useRouter } from "next/navigation";
-import { Topic } from "../types/topic";
+import { Topic, UserResponse } from "../types/topic";
 import { useState } from "react";
+import UserInfo from "./UserInfo";
 
-const TopicCard = ({ id, title, body, is_closed }: Topic) => {
+interface TopicCardProps {
+  topic: Topic,
+  loggedInUserId: string
+}
+
+const TopicCard = ({topic, loggedInUserId}: TopicCardProps) => {
   const router = useRouter();
+  const {created_by_data, title, is_closed, body, id} = topic
 
   const handleClick = () => {
     router.push(`/topic/${id}`); // Navigate to topic detail page
@@ -14,12 +21,18 @@ const TopicCard = ({ id, title, body, is_closed }: Topic) => {
       onClick={handleClick}
       className="cursor-pointer bg-white rounded-lg p-6 shadow-lg transition-all hover:shadow-xl hover:bg-gray-50"
     >
+      <UserInfo
+        user={created_by_data as UserResponse}
+        isSender={loggedInUserId === topic.created_by}
+      />
       <h3 className="text-2xl font-semibold text-darkBlue mb-2">{title}</h3>
       <p className="text-navy mb-4">{body.substring(0, 100)}...</p>
       <div className="flex justify-end">
         <span
           className={`inline-block px-3 py-1 rounded-full text-sm font-semibold ${
-            is_closed ? "bg-red-100 text-red-600" : "bg-green-100 text-green-600"
+            is_closed
+              ? "bg-red-100 text-red-600"
+              : "bg-green-100 text-green-600"
           }`}
         >
           {is_closed ? "Closed" : "Open"}

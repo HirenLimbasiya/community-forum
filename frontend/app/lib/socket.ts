@@ -58,7 +58,8 @@ export interface SocketSendMessage<T = unknown> {
     | "join_to_topic"
     | "leave_from_topic"
     | "send_topic_reply"
-    | "delete_topic_reply";
+    | "delete_topic_reply"
+    | "edit_topic_reply"
 }
 
 const sendSocketMessage = (message: SocketSendMessage) => {

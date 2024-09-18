@@ -64,12 +64,12 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
   };
 
   const register = async (
-    username: string,
+    name: string,
     email: string,
     password: string
   ) => {
     try {
-      const { data } = await createUser({ username, email, password });
+      const { data } = await createUser({ name, email, password });
       if (data?.token) {
         localStorage.setItem("token", data.token);
         setUpSocket();

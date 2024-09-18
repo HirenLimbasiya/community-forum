@@ -104,44 +104,10 @@ func (s *topicReplyStore) GetByTopicID(
 						"user_reacted": bson.M{"$max": "$user_reacted"}, // Retain the user_reacted field
 					}},
 				},
-				//sort reaction by count
-				bson.D{
-					{Key: "$sort", Value: bson.M{"count": -1}},
-				},
-				//gather top reaction and total count
-				bson.D{
-					{Key: "$group", Value: bson.M{
-						"_id":             nil,
-						"reactions":       bson.M{"$push": "$_id"},
-						"total_reactions": bson.M{"$sum": "$count"},
-						"user_reacted":    bson.M{"$max": "$user_reacted"},
-					}},
-				},
 			},
 
-			"as": "reactions_data",
+			"as": "reactions",
 		}}},
-		//convert reactions_data into single object
-		bson.D{{Key: "$unwind", Value: bson.M{
-			"path":                       "$reactions_data",
-			"preserveNullAndEmptyArrays": true,
-		}}},
-		//add new field for easy access
-		bson.D{{Key: "$addFields", Value: bson.M{
-			"top_reactions":  "$reactions_data.reactions",
-			"reaction_count": "$reactions_data.total_reactions",
-			"user_reacted":   "$reactions_data.user_reacted",
-			"is_reacted": bson.M{
-				"$cond": bson.M{
-					"if": bson.M{
-						"$gt": bson.A{"$reactions_data.user_reacted", nil},
-					}, // Check if user_reacted is not null
-					"then": true,
-					"else": false,
-				},
-			},
-		}}},
-		//sort by their sent time
 		bson.D{{Key: "$sort", Value: bson.M{"sent_time": 1}}},
 	}
 

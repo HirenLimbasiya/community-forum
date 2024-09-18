@@ -28,7 +28,26 @@ func NewTopicStore(collection *mongo.Collection) TopicStore {
 }
 
 func (s *topicStore) Get(ctx context.Context) ([]types.Topic, error) {
-	cursor, err := s.Collection.Find(ctx, bson.M{})
+	// Define the aggregation pipeline
+	pipeline := []bson.M{
+		{
+			"$lookup": bson.M{
+				"from":         "users",           
+				"localField":   "created_by",      
+				"foreignField": "_id",             
+				"as":           "created_by_data", 
+			},
+		},
+		{
+			"$unwind": bson.M{
+				"path":                       "$created_by_data", 
+				"preserveNullAndEmptyArrays": true,               
+			},
+		},
+	}
+
+	// Execute the aggregation pipeline
+	cursor, err := s.Collection.Aggregate(ctx, pipeline)
 	if err != nil {
 		return nil, err
 	}
@@ -45,6 +64,7 @@ func (s *topicStore) Get(ctx context.Context) ([]types.Topic, error) {
 
 	return topics, nil
 }
+
 
 func (s *topicStore) Create(ctx context.Context, topic types.CreateTopic) (types.Topic, error) {
 	result, err := s.Collection.InsertOne(ctx, topic)
