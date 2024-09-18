@@ -53,6 +53,8 @@ func handleWebSocket(c *websocket.Conn) {
 			handleSentTopicReply(wsMessageBody)
 		case "delete_topic_reply":
 			handleDeleteTopicReply(wsMessageBody)
+		case "edit_topic_reply":
+			handleEditTopicReply(wsMessageBody)
 		default:
 			WSConnectionManager.BroadcastMessage(wsMessageBody)
 		}
@@ -208,6 +210,44 @@ func handleDeleteTopicReply(wsMessageBody types.WebSocketMessage) {
 		fmt.Println("Failed to create topic reply:", err)
 		return
 	}
+
+	sender, getUserErr := Store.User.GetByID(context.Background(), wsMessageBody.SenderID)
+	if getUserErr == nil {
+		replie.Sender = sender
+	}
+
+	sentMessage := types.WebSocketSentMessage{
+		Type: "update_topic_reply",
+		Data: replie,
+	}
+	broadcastTopicReply(replie.TopicID, sentMessage)
+}
+
+func handleEditTopicReply(wsMessageBody types.WebSocketMessage) {
+	var replyData types.CreateTopicReplyFromParams
+
+	fmt.Printf("wsMessageBody.Data: %+v\n", wsMessageBody.Data)
+
+	err := mapToStruct(wsMessageBody.Data, &replyData)
+	if err != nil {
+		fmt.Println("Failed to map to CreateTopicReply:", err)
+		return
+	}
+
+	fmt.Printf("Mapped Data: %+v\n", replyData)
+
+	replie, err := Store.TopicReplies.UpdateByID(context.Background(), wsMessageBody.RecipientID, replyData.Content)
+
+	if err != nil {
+		fmt.Println("Failed to create topic reply:", err)
+		return
+	}
+
+	sender, getUserErr := Store.User.GetByID(context.Background(), wsMessageBody.SenderID)
+	if getUserErr == nil {
+		replie.Sender = sender
+	}
+
 	sentMessage := types.WebSocketSentMessage{
 		Type: "update_topic_reply",
 		Data: replie,

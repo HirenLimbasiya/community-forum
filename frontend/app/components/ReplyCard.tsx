@@ -44,7 +44,14 @@ const ReplyCard = ({ reply, loggedInUserId }: ReplyCardProps) => {
 
   const handleSaveEdit = () => {
     // Function to save the edited reply
-    console.log("edit", editContent);
+    const message: SocketSendMessage = {
+      type: "edit_topic_reply",
+      recipient_id: reply.id,
+      data: {
+        content: editContent,
+      },
+    };
+    sendSocketMessage(message);
     setIsEditing(false); // Disable editing mode after saving
   };
 
