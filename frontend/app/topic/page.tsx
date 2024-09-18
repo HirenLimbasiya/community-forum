@@ -9,7 +9,11 @@ import { useAppDispatch, useAppSelector } from "../store/hooks";
 const TopicPage = () => {
   const { topics } = useAppSelector((state) => state.topics);
   const dispatch = useAppDispatch();
+  const token = localStorage.getItem("token") || "";
+  const payload = token.split(".")[1]; // Get the payload part of the JWT
+  const decodedPayload = JSON.parse(atob(payload)); // Decode base64 and parse JSON
 
+  const userId = decodedPayload.id;
   useEffect(() => {
     const fetchTopics = async () => {
       try {
@@ -24,7 +28,7 @@ const TopicPage = () => {
   }, []);
 
   return (
-    <div className="min-h-screen bg-gray-50 py-8">
+    <div className="min-h-[calc(100vh-64px)] bg-gray-50 overflow-y-auto">
       <div className="container mx-auto">
         <h1 className="text-4xl font-bold text-gray-800 mb-8">Topics</h1>
         {topics.length === 0 ? (
@@ -32,14 +36,7 @@ const TopicPage = () => {
         ) : (
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-8">
             {topics.map((topic) => (
-              <TopicCard
-                key={topic.id}
-                id={topic.id}
-                title={topic.title}
-                body={topic.body}
-                is_closed={topic.is_closed}
-                created_by=""
-              />
+              <TopicCard key={topic.id} topic={topic} loggedInUserId={userId} />
             ))}
           </div>
         )}

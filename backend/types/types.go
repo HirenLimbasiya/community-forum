@@ -24,6 +24,7 @@ type Topic struct {
 	Body      string             `json:"body"         bson:"body"`
 	IsClosed  bool               `json:"is_closed"    bson:"is_closed"`
 	CreatedBy primitive.ObjectID `json:"created_by"   bson:"created_by"`
+	CreatedByData UserResponse `json:"created_by_data" bson:"created_by_data"`
 }
 
 type CreateTopic struct {
@@ -49,13 +50,17 @@ type TopicReply struct {
 	SentTime      time.Time          `json:"sent_time"      bson:"sent_time"`
 	Content       string             `json:"content"        bson:"content"`
 	Sender        UserResponse       `json:"sender"         bson:"sender"`
-	TopReactions  []string           `json:"top_reactions"  bson:"top_reactions"`
-	ReactionCount int                `json:"reaction_count" bson:"reaction_count"`
-	UserReacted   Reaction           `json:"user_reacted"   bson:"user_reacted"`
-	IsReactesd    bool               `json:"is_reacted"     bson:"is_reacted"`
 	Delete        bool               `json:"delete"         bson:"delete"`
+	Reactions []ReactionGroup `json:"reactions" bson:"reactions"`
 	// ReactionsData map[string]interface{} `json:"reactions_data" bson:"reactions_data"`
 }
+
+type ReactionGroup struct {
+	Count int `json:"count" bson:"count"`
+	Id string `json:"id" bson:"_id"`
+	UserReacted   Reaction           `json:"user_reacted"   bson:"user_reacted"`
+} 
+
 type CreateTopicReply struct {
 	TopicID  string             `json:"topic_id"  bson:"topic_id"`
 	SenderID primitive.ObjectID `json:"sender_id" bson:"sender_id"`

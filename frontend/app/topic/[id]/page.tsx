@@ -58,8 +58,8 @@ const TopicDetailPage = () => {
   }
 
   return (
-    <div className="flex flex-col items-center justify-center h-screen bg-light">
-      <div className="relative bg-white rounded-lg p-6 shadow-lg h-full w-full max-w-2xl">
+    <div className="min-h-[calc(100vh-64px)] bg-light overflow-y-auto">
+      <div className="relative bg-white rounded-lg p-6 shadow-lg w-full max-w-2xl mx-auto">
         <h1 className="text-3xl font-semibold text-darkBlue mb-4">
           {topic.title}
         </h1>

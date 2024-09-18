@@ -1,4 +1,3 @@
-// ReplyInput.tsx
 "use client";
 
 import React, { useState } from "react";
@@ -10,7 +9,8 @@ interface ReplyInputProps {
 const ReplyInput = ({ onSend }: ReplyInputProps) => {
   const [content, setContent] = useState("");
 
-  const handleSend = () => {
+  const handleSend = (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault(); // Prevent the default form submission
     if (content.trim()) {
       onSend(content);
       setContent(""); // Clear the input after sending
@@ -18,7 +18,7 @@ const ReplyInput = ({ onSend }: ReplyInputProps) => {
   };
 
   return (
-    <div className="flex items-center space-x-2 mt-4">
+    <form className="flex items-center space-x-2 mt-4" onSubmit={handleSend}>
       <input
         type="text"
         value={content}
@@ -27,12 +27,12 @@ const ReplyInput = ({ onSend }: ReplyInputProps) => {
         className="flex-grow border border-gray-300 rounded-lg p-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
       />
       <button
-        onClick={handleSend}
+        type="submit" // Set the button type to submit
         className="bg-blue-500 text-white rounded-lg px-4 py-2 hover:bg-blue-600 transition duration-200"
       >
         Send
       </button>
-    </div>
+    </form>
   );
 };
 

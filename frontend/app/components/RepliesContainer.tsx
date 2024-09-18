@@ -75,9 +75,6 @@ const RepliesContainer = ({ topicId }: RepliesContainerProps) => {
   return (
     <div className="flex flex-col h-full">
       <RepliesList replies={replies} loggedInUserId={userId} />
-      {/* {replies.map((reply) => (
-        <div key={reply}>{reply}</div>
-      ))} */}
       <ReplyInput onSend={handleSendReply} />
     </div>
   );
