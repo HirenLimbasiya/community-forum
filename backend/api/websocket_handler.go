@@ -247,7 +247,7 @@ func handleEditTopicReply(wsMessageBody types.WebSocketMessage) {
 	if getUserErr == nil {
 		replie.Sender = sender
 	}
-
+	
 	sentMessage := types.WebSocketSentMessage{
 		Type: "update_topic_reply",
 		Data: replie,

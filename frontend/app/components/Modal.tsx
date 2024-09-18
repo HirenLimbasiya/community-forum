@@ -23,15 +23,20 @@ const Modal: React.FC<ModalProps> = ({ title, isOpen, onClose, children }) => {
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-      <div className="bg-white rounded-lg p-6 w-11/12 md:w-1/3">
-        <h2 className="text-xl font-semibold mb-4">{title}</h2>
-        <button
-          className="absolute top-2 right-2 text-gray-600"
-          onClick={onClose}
-        >
-          &times;
-        </button>
-        {children}
+      <div className="bg-white rounded-lg p-6 w-11/12 md:w-1/3 relative">
+        {/* Modal Header with Title and Close Button */}
+        <div className="flex justify-between items-center mb-4">
+          <h2 className="text-xl font-semibold">{title}</h2>
+          <button
+            className="text-gray-600 hover:text-gray-800 transition-colors text-3xl" // Larger text size
+            onClick={onClose}
+          >
+            &times;
+          </button>
+        </div>
+
+        {/* Modal Body */}
+        <div>{children}</div>
       </div>
     </div>
   );

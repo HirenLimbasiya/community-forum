@@ -190,6 +190,7 @@ func (s *topicReplyStore) UpdateByID(ctx context.Context, id string, content str
 	updateFields := bson.M{
 		"$set": bson.M{
 			"content": content,
+			"is_edited": true,
 		},
 	}
 

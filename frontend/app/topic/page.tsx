@@ -9,11 +9,7 @@ import { useAppDispatch, useAppSelector } from "../store/hooks";
 const TopicPage = () => {
   const { topics } = useAppSelector((state) => state.topics);
   const dispatch = useAppDispatch();
-  const token = localStorage.getItem("token") || "";
-  const payload = token.split(".")[1]; // Get the payload part of the JWT
-  const decodedPayload = JSON.parse(atob(payload)); // Decode base64 and parse JSON
 
-  const userId = decodedPayload.id;
   useEffect(() => {
     const fetchTopics = async () => {
       try {
@@ -36,7 +32,7 @@ const TopicPage = () => {
         ) : (
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-8">
             {topics.map((topic) => (
-              <TopicCard key={topic.id} topic={topic} loggedInUserId={userId} />
+              <TopicCard key={topic.id} topic={topic} />
             ))}
           </div>
         )}

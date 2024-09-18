@@ -32,3 +32,7 @@ export const getLogdinUser = async (): Promise<ApiResponse<UserResponseData>> =>
   const response = await getRequest<UserResponseData>("/user/me");
   return response;
 };
+export const getUserById = async (id: string): Promise<ApiResponse<UserResponseData>> => {
+  const response = await getRequest<UserResponseData>(`/user/${id}`);
+  return response;
+};

@@ -16,6 +16,11 @@ export const createTopic = async (
 export const getUserTopics = async (): Promise<ApiResponse<Topic[]>> => {
   const response = await getRequest<Topic[]>("/topics/user");
   return response;
+}
+;
+export const getTopicsByUserId = async (id: string): Promise<ApiResponse<Topic[]>> => {
+  const response = await getRequest<Topic[]>(`/topics/user/${id}`);
+  return response;
 };
 
 export const deleteTopic = async (id: string): Promise<ApiResponse<null>> => {

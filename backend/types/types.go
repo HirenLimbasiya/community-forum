@@ -52,6 +52,7 @@ type TopicReply struct {
 	Sender        UserResponse       `json:"sender"         bson:"sender"`
 	Delete        bool               `json:"delete"         bson:"delete"`
 	Reactions []ReactionGroup `json:"reactions" bson:"reactions"`
+	IsEdited bool `json:"is_edited" bson:"is_edited"`
 	// ReactionsData map[string]interface{} `json:"reactions_data" bson:"reactions_data"`
 }
 

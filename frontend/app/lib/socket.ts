@@ -1,6 +1,6 @@
 // lib/socket.ts
 
-import { addSingleTopicReplyToStore } from "../slices/singleTopicSlice";
+import { addSingleTopicReplyToStore, updateSingleTopicReplyToStore } from "../slices/singleTopicSlice";
 import store from "../store/store";
 import { TopicReply } from "../types/topic";
 
@@ -46,6 +46,10 @@ const handleMessage = (event: MessageEvent) => {
   if (message.type === "recieves_topic_reply") {
     const reply: TopicReply = message.data;
     store.dispatch(addSingleTopicReplyToStore(reply));
+  }
+  if (message.type === "update_topic_reply"){
+    const reply: TopicReply = message.data;
+    store.dispatch(updateSingleTopicReplyToStore(reply));
   }
 };
 
