@@ -17,6 +17,7 @@ type TopicStore interface {
 	UpdateByID(ctx context.Context, id string, topic types.CreateTopic) error
 	DeleteByID(ctx context.Context, id string) error
 	GetByUserID(ctx context.Context, userID primitive.ObjectID) ([]types.Topic, error)
+	CloseByID(ctx context.Context, id string) error 
 }
 
 type topicStore struct {
@@ -166,4 +167,20 @@ func (s *topicStore) GetByUserID(ctx context.Context, userID primitive.ObjectID)
 	}
 
 	return topics, nil
+}
+func (s *topicStore) CloseByID(ctx context.Context, id string) error {
+	objectID, err := primitive.ObjectIDFromHex(id)
+	if err != nil {
+		return err
+	}
+	filter := bson.M{"_id": objectID}
+
+	update := bson.M{"$set": bson.M{"is_closed": true}}
+
+	_, err = s.Collection.UpdateOne(ctx, filter, update)
+	if err != nil {
+		return err
+	}
+
+	return nil
 }
