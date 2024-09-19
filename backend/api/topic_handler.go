@@ -17,6 +17,7 @@ func RegisterTopicRoutes(app *fiber.App) {
 	app.Delete("/api/topic/:id", handleDeleteTopic)
 	app.Get("/api/topics/user", handleGetTopicsByUser)
 	app.Get("/api/topics/user/:userId", handleGetAllTopicsByUserID) // New endpoint
+	app.Patch("/api/topic/:id/close", handleCloseTopic) // New endpoint to close a topic
 }
 
 func handleGetTopics(c *fiber.Ctx) error {
@@ -42,10 +43,8 @@ func handleCreateTopic(c *fiber.Ctx) error {
 }
 
 func handleGetTopic(c *fiber.Ctx) error {
-	// Get the topic ID from the URL parameters
 	topicID := c.Params("id")
 
-	// Retrieve the topic from the database
 	topic, err := Store.Topic.GetByID(c.Context(), topicID)
 	if err != nil {
 		if err == mongo.ErrNoDocuments {
@@ -54,15 +53,12 @@ func handleGetTopic(c *fiber.Ctx) error {
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": "Failed to get topic"})
 	}
 
-	// Return the retrieved topic
 	return c.JSON(topic)
 }
 
 func handleDeleteTopic(c *fiber.Ctx) error {
-	// Get the topic ID from the URL parameters
 	topicID := c.Params("id")
 
-	// Delete the topic from the database
 	err := Store.Topic.DeleteByID(c.Context(), topicID)
 	if err != nil {
 		if err == mongo.ErrNoDocuments {
@@ -71,15 +67,12 @@ func handleDeleteTopic(c *fiber.Ctx) error {
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": "Failed to delete topic"})
 	}
 
-	// Return success message
 	return c.JSON(fiber.Map{"message": "Topic deleted successfully"})
 }
 
 func handleUpdateTopic(c *fiber.Ctx) error {
-	// Get the topic ID from the URL parameters
 	topicID := c.Params("id")
 
-	// Get the updated topic data from the request body
 	var body types.CreateTopic
 	if err := c.BodyParser(&body); err != nil {
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": err.Error()})
@@ -93,13 +86,11 @@ func handleUpdateTopic(c *fiber.Ctx) error {
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": "Failed to retrieve topic"})
 	}
 
-	// Create an updated topic object with values from the request body
 	updatedTopic := types.CreateTopic{
 		Title: strings.TrimSpace(body.Title),
 		Body:  strings.TrimSpace(body.Body),
 	}
 
-	// If a field is empty in the request body, retain the existing value
 	if updatedTopic.Title == "" {
 		updatedTopic.Title = existingTopic.Title
 	}
@@ -107,7 +98,6 @@ func handleUpdateTopic(c *fiber.Ctx) error {
 		updatedTopic.Body = existingTopic.Body
 	}
 
-	// Update the topic in the database
 	err = Store.Topic.UpdateByID(c.Context(), topicID, updatedTopic)
 	if err != nil {
 		if err == mongo.ErrNoDocuments {
@@ -116,16 +106,13 @@ func handleUpdateTopic(c *fiber.Ctx) error {
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": "Failed to update topic"})
 	}
 
-	// Return success message
 	return c.JSON(fiber.Map{"message": "Topic updated successfully"})
 }
 
 func handleGetTopicsByUser(c *fiber.Ctx) error {
-	// Get user from context (assumed to be set by auth middleware)
 	user := c.Locals("user").(types.UserResponse)
 	userID := user.ID
 
-	// Retrieve topics created by this user from the database
 	topics, err := Store.Topic.GetByUserID(c.Context(), userID)
 	if err != nil {
 		if err == mongo.ErrNoDocuments {
@@ -134,22 +121,18 @@ func handleGetTopicsByUser(c *fiber.Ctx) error {
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": "Failed to get topics"})
 	}
 
-	// Return the retrieved topics
 	return c.JSON(topics)
 }
 
 // New handler to get topics by user ID from the URL parameter
 func handleGetAllTopicsByUserID(c *fiber.Ctx) error {
-	// Get user ID from URL parameters
 	userID := c.Params("userId")
 
-	// Convert userID to primitive.ObjectID
 	objectID, err := primitive.ObjectIDFromHex(userID)
 	if err != nil {
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "Invalid user ID format"})
 	}
 
-	// Retrieve topics created by the specified user from the database
 	topics, err := Store.Topic.GetByUserID(c.Context(), objectID)
 	if err != nil {
 		if err == mongo.ErrNoDocuments {
@@ -158,6 +141,19 @@ func handleGetAllTopicsByUserID(c *fiber.Ctx) error {
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": "Failed to get topics"})
 	}
 
-	// Return the retrieved topics
 	return c.JSON(topics)
+}
+
+func handleCloseTopic(c *fiber.Ctx) error {
+	topicID := c.Params("id")
+
+	err := Store.Topic.CloseByID(c.Context(), topicID)
+	if err != nil {
+		if err == mongo.ErrNoDocuments {
+			return c.Status(fiber.StatusNotFound).JSON(fiber.Map{"error": "Topic not found"})
+		}
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": "Failed to close topic"})
+	}
+
+	return c.JSON(fiber.Map{"message": "Topic closed successfully"})
 }

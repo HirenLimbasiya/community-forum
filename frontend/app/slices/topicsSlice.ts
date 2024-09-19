@@ -24,9 +24,21 @@ const topicsSlice = createSlice({
         (topic) => topic.id !== action.payload
       );
     },
+    closeTopicInStore(state, action: PayloadAction<string>) {
+      const index = state.topics.findIndex(
+        (topic) => topic.id === action.payload
+      );
+      if (index!== -1) {
+        state.topics[index].is_closed = true;
+      }
+    }
   },
 });
 
-export const { setTopicsInStore, addTopicInStore, deleteTopicFromStore } =
-  topicsSlice.actions;
+export const {
+  setTopicsInStore,
+  addTopicInStore,
+  deleteTopicFromStore,
+  closeTopicInStore,
+} = topicsSlice.actions;
 export default topicsSlice.reducer;

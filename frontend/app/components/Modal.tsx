@@ -3,7 +3,7 @@
 import React, { useEffect } from "react";
 
 interface ModalProps {
-  title: string; // Title of the modal
+  title?: string; // Title of the modal
   isOpen: boolean; // Control modal visibility
   onClose: () => void; // Close modal function
   children: React.ReactNode; // Modal content

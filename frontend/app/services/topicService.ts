@@ -3,6 +3,7 @@ import {
   ApiResponse,
   deleteRequest,
   getRequest,
+  patchRequest,
   postRequest,
 } from "./apiService";
 
@@ -44,3 +45,8 @@ export const getRepliesByTopicId = async (
   const response = await getRequest<TopicReply[]>(`/topic/${id}/replies`);
   return response;
 };
+
+export const closeTopicById = async (id: string): Promise<ApiResponse<string>> => {
+  const response = await patchRequest<string>(`/topic/${id}/close`, {});
+  return response;
+}
