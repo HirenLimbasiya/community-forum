@@ -20,7 +20,16 @@ const ReplyCard = ({ reply, loggedInUserId }: ReplyCardProps) => {
   const isSender = reply.sender_id === loggedInUserId;
 
   const handleReaction = (reaction: string) => {
-    console.log(reaction);
+    const message: SocketSendMessage = {
+      type: "topic_reply_reaction",
+      recipient_id: reply.id,
+      sender_id: reply.sender_id,
+      data: {
+        content: reaction,
+        topic_id: reply.topic_id,
+      },
+    };
+    sendSocketMessage(message);
   };
 
   const handleActionsReply = (actionType: string) => {
