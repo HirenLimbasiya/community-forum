@@ -281,23 +281,60 @@ func handleTopicReplyReaction(wsMessageBody types.WebSocketMessage) {
 		return
 	}
 
-	reactionDoc := types.Reaction{
-		SourceID:  recipientID,
-		Type:      "topic_reply",
-		Reaction:  replyData.Content,
-		UserID:    userID,
-		ReactedAt: time.Now(),
+	getReaction, getReactionErr := Store.Reactions.GetByUserAndSource(
+		context.Background(),
+		"topic_reply",
+		recipientID,
+		userID,
+	)
+	fmt.Println("Reaction:", getReaction == nil)
+	// getReactionId = getReaction.ID
+	if getReactionErr == nil && getReaction != nil {
+		if replyData.Content == "" {
+			reactionErr := Store.Reactions.DeleteByID(context.Background(), getReaction.ID.Hex())
+			if reactionErr != nil {
+				fmt.Println("Failed to delete topic reply reaction:", reactionErr)
+				return
+			}
+		} else {
+			reactionDoc := types.UpdateReaction{
+				SourceID:  recipientID,
+				Type:      "topic_reply",
+				Reaction:  replyData.Content,
+				ReactedAt: time.Now(),
+			}
+
+			reactionErr := Store.Reactions.UpdateByID(context.Background(), getReaction.ID.Hex(), reactionDoc)
+			if reactionErr != nil {
+				fmt.Println("Failed to update topic reply reaction:", reactionErr)
+				return
+			}
+		}
+	} else {
+		reactionDoc := types.Reaction{
+			SourceID:  recipientID,
+			Type:      "topic_reply",
+			Reaction:  replyData.Content,
+			UserID:    userID,
+			ReactedAt: time.Now(),
+		}
+
+		_, reactionErr := Store.Reactions.Create(context.Background(), reactionDoc)
+		if reactionErr != nil {
+			fmt.Println("Failed to create topic reply reaction:", reactionErr)
+			return
+		}
 	}
 
-	reaction, err := Store.Reactions.Create(context.Background(), reactionDoc)
-	if err != nil {
-		fmt.Println("Failed to create topic reply reaction:", err)
+	reply, replyErr := Store.TopicReplies.GetByID(context.Background(), wsMessageBody.RecipientID, userID)
+	if replyErr != nil {
+		fmt.Println("Failed to get topic reply :", replyErr)
 		return
 	}
 
 	sentMessage := types.WebSocketSentMessage{
-		Type: "update_topic_reply_reaction",
-		Data: reaction,
+		Type: "update_topic_reply",
+		Data: reply,
 	}
 	broadcastTopicReply(replyData.TopicID, sentMessage)
 }
