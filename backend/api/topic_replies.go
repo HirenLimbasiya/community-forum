@@ -11,6 +11,7 @@ import (
 func RegisterTopicReplyRoutes(app *fiber.App) {
 	app.Post("/api/topic/:id/replies", handleCreateTopicReply)
 	app.Get("/api/topic/:id/replies", handleGetTopicReplies)
+	app.Get("/api/reply/:id", handleGetReplyByID)
 }
 
 func handleCreateTopicReply(c *fiber.Ctx) error {
@@ -65,4 +66,21 @@ func handleGetTopicReplies(c *fiber.Ctx) error {
 	}
 
 	return c.JSON(replies)
+}
+
+func handleGetReplyByID(c *fiber.Ctx) error {
+	replyID := c.Params("id")
+	user := c.Locals("user").(types.UserResponse)
+
+
+	// Fetch the reply by its ID from the database
+	reply, err := Store.TopicReplies.GetByID(c.Context(), replyID, user.ID)
+	if err != nil {
+		if err == mongo.ErrNoDocuments {
+			return c.Status(fiber.StatusNotFound).JSON(fiber.Map{"error": "Reply not found"})
+		}
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": err.Error()})
+	}
+
+	return c.JSON(reply)
 }

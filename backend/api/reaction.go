@@ -55,7 +55,7 @@ func handleCreateReaction(c *fiber.Ctx) error {
 	var validSourceID bool
 	switch reaction.Type {
 	case "topic_reply":
-		_, err := Store.TopicReplies.GetByID(c.Context(), reaction.SourceID)
+		_, err := Store.TopicReplies.GetByID(c.Context(), reaction.SourceID, user.ID)
 		if err == nil {
 			validSourceID = true
 		}

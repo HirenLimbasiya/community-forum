@@ -1,14 +1,16 @@
 "use client";
-import { useState } from "react";
-import Modal from "@/app/components/Modal"; // Importing your Modal component
-import { FiMoreHorizontal } from "react-icons/fi";
-import { Topic } from "../types/topic";
-import { useAppDispatch } from "../store/hooks";
-import { deleteTopic } from "../services/topicService";
-import { deleteTopicFromStore } from "../slices/topicsSlice";
 import { useRouter } from "next/navigation";
+import { useState } from "react";
+import { FiMoreHorizontal } from "react-icons/fi";
+import { closeTopicById, deleteTopic } from "../services/topicService";
+import { closeTopicInStore, deleteTopicFromStore } from "../slices/topicsSlice";
+import { useAppDispatch } from "../store/hooks";
+import { Topic } from "../types/topic";
+import Chip from "./Chip";
+import TopicActionModal from "./TopicActionModal";
+import Modal from "./Modal";
 
-interface TopicCardWithManagebaleProps extends Topic {
+interface TopicCardWithManageableProps extends Topic {
   onDelete?: (id: string) => void;
 }
 
@@ -17,7 +19,7 @@ const UserTopicCard = ({
   title,
   body,
   is_closed,
-}: TopicCardWithManagebaleProps) => {
+}: TopicCardWithManageableProps) => {
   const router = useRouter();
   const [isHovered, setIsHovered] = useState(false);
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -27,14 +29,26 @@ const UserTopicCard = ({
     router.push(`/topic/${id}`);
   };
 
-  const handleDelete = async (e: React.MouseEvent) => {
-    e.stopPropagation();
+  const handleDelete = async () => {
     try {
       await deleteTopic(id);
       dispatch(deleteTopicFromStore(id));
       setIsModalOpen(false);
     } catch (error) {
       console.error(error);
+    }
+  };
+
+  const handleToggleStatus = async () => {
+    if (!is_closed) {
+      try {
+        // Implement toggle status functionality
+        await closeTopicById(id);
+        dispatch(closeTopicInStore(id));
+        setIsModalOpen(false);
+      } catch (error) {
+        console.error(error);
+      }
     }
   };
 
@@ -49,22 +63,18 @@ const UserTopicCard = ({
         onClick={handleClick}
         onMouseEnter={() => setIsHovered(true)}
         onMouseLeave={() => setIsHovered(false)}
-        className="cursor-pointer bg-white rounded-lg p-6 shadow-lg transition-all hover:shadow-xl hover:bg-gray-50 duration-200 ease-in-out relative"
+        className="cursor-pointer bg-white rounded-lg p-6 shadow-lg hover:shadow-xl transition-all duration-200 ease-in-out relative overflow-hidden"
       >
-        <h3 className="text-2xl font-semibold text-darkBlue mb-2">{title}</h3>
-        <p className="text-navy mb-4">
+        <h3 className="text-2xl font-bold text-gray-900 mb-2">{title}</h3>
+        <p className="text-gray-700 mb-4">
           {body.length > 100 ? `${body.substring(0, 100)}...` : body}
         </p>
-        <div className="flex justify-end">
-          <span
-            className={`inline-block px-3 py-1 rounded-full text-sm font-semibold transition-all ${
-              is_closed
-                ? "bg-red-100 text-red-600"
-                : "bg-green-100 text-green-600"
-            }`}
-          >
-            {is_closed ? "Closed" : "Open"}
-          </span>
+
+        <div className="flex justify-between items-center">
+          <Chip
+            label={is_closed ? "Closed" : "Open"}
+            color={is_closed ? "red" : "green"}
+          />
         </div>
 
         {isHovered && (
@@ -74,41 +84,13 @@ const UserTopicCard = ({
             size={24}
           />
         )}
-
-        {/* Modal */}
       </div>
-      <Modal
-        title="Manage Topic"
-        isOpen={isModalOpen}
-        onClose={() => setIsModalOpen(false)}
-      >
-        <div className="flex flex-col space-y-4 p-6 bg-white rounded-lg shadow-md animate-fade-in">
-          {/* Action Buttons */}
-          <div className="flex justify-between items-center">
-            <span className="text-gray-700 font-semibold text-lg">
-              Delete Topic
-            </span>
-            <button
-              onClick={handleDelete}
-              className="bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded-lg transition-all duration-300 ease-in-out shadow-sm"
-            >
-              Delete
-            </button>
-          </div>
-          <div className="flex justify-between items-center">
-            <span className="text-gray-700 font-semibold text-lg">
-              {is_closed ? "Open Topic" : "Close Topic"}
-            </span>
-            <button
-              className={`${is_closed ? "bg-green-500" : "bg-red-500"} hover:${
-                is_closed ? "bg-green-600" : "bg-red-600"
-              } 
-              text-white px-4 py-2 rounded-lg transition-all duration-300 ease-in-out shadow-sm`}
-            >
-              {is_closed ? "Open" : "Close"}
-            </button>
-          </div>
-        </div>
+      <Modal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)}>
+        <TopicActionModal
+          onDelete={handleDelete}
+          onToggleStatus={handleToggleStatus}
+          isClosed={is_closed}
+        />
       </Modal>
     </>
   );
