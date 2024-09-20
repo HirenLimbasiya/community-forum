@@ -19,12 +19,12 @@ type UserResponse struct {
 }
 
 type Topic struct {
-	ID        primitive.ObjectID `json:"id,omitempty" bson:"_id,omitempty"`
-	Title     string             `json:"title"        bson:"title"`
-	Body      string             `json:"body"         bson:"body"`
-	IsClosed  bool               `json:"is_closed"    bson:"is_closed"`
-	CreatedBy primitive.ObjectID `json:"created_by"   bson:"created_by"`
-	CreatedByData UserResponse `json:"created_by_data" bson:"created_by_data"`
+	ID            primitive.ObjectID `json:"id,omitempty"    bson:"_id,omitempty"`
+	Title         string             `json:"title"           bson:"title"`
+	Body          string             `json:"body"            bson:"body"`
+	IsClosed      bool               `json:"is_closed"       bson:"is_closed"`
+	CreatedBy     primitive.ObjectID `json:"created_by"      bson:"created_by"`
+	CreatedByData UserResponse       `json:"created_by_data" bson:"created_by_data"`
 }
 
 type CreateTopic struct {
@@ -44,23 +44,23 @@ type UpdateUser struct {
 }
 
 type TopicReply struct {
-	ID            primitive.ObjectID `json:"id,omitempty"   bson:"_id,omitempty"`
-	TopicID       string             `json:"topic_id"       bson:"topic_id"`
-	SenderID      primitive.ObjectID `json:"sender_id"      bson:"sender_id"`
-	SentTime      time.Time          `json:"sent_time"      bson:"sent_time"`
-	Content       string             `json:"content"        bson:"content"`
-	Sender        UserResponse       `json:"sender"         bson:"sender"`
-	Delete        bool               `json:"delete"         bson:"delete"`
-	Reactions []ReactionGroup `json:"reactions" bson:"reactions"`
-	IsEdited bool `json:"is_edited" bson:"is_edited"`
+	ID        primitive.ObjectID `json:"id,omitempty" bson:"_id,omitempty"`
+	TopicID   string             `json:"topic_id"     bson:"topic_id"`
+	SenderID  primitive.ObjectID `json:"sender_id"    bson:"sender_id"`
+	SentTime  time.Time          `json:"sent_time"    bson:"sent_time"`
+	Content   string             `json:"content"      bson:"content"`
+	Sender    UserResponse       `json:"sender"       bson:"sender"`
+	Delete    bool               `json:"delete"       bson:"delete"`
+	Reactions []ReactionGroup    `json:"reactions"    bson:"reactions"`
+	IsEdited  bool               `json:"is_edited"    bson:"is_edited"`
 	// ReactionsData map[string]interface{} `json:"reactions_data" bson:"reactions_data"`
 }
 
 type ReactionGroup struct {
-	Count int `json:"count" bson:"count"`
-	Id string `json:"id" bson:"_id"`
-	UserReacted   Reaction           `json:"user_reacted"   bson:"user_reacted"`
-} 
+	Count       int      `json:"count"        bson:"count"`
+	Id          string   `json:"id"           bson:"_id"`
+	UserReacted Reaction `json:"user_reacted" bson:"user_reacted"`
+}
 
 type CreateTopicReply struct {
 	TopicID  string             `json:"topic_id"  bson:"topic_id"`
@@ -71,6 +71,10 @@ type CreateTopicReply struct {
 }
 type CreateTopicReplyFromParams struct {
 	Content string `json:"content" bson:"content"`
+}
+type CreateTopicReplyReactionFromParams struct {
+	Content string `json:"content"  bson:"content"`
+	TopicID string `json:"topic_id" bson:"topic_id"`
 }
 
 type Reaction struct {

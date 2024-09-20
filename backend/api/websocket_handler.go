@@ -55,6 +55,8 @@ func handleWebSocket(c *websocket.Conn) {
 			handleDeleteTopicReply(wsMessageBody)
 		case "edit_topic_reply":
 			handleEditTopicReply(wsMessageBody)
+		case "topic_reply_reaction":
+			handleTopicReplyReaction(wsMessageBody)
 		default:
 			WSConnectionManager.BroadcastMessage(wsMessageBody)
 		}
@@ -247,12 +249,57 @@ func handleEditTopicReply(wsMessageBody types.WebSocketMessage) {
 	if getUserErr == nil {
 		replie.Sender = sender
 	}
-	
+
 	sentMessage := types.WebSocketSentMessage{
 		Type: "update_topic_reply",
 		Data: replie,
 	}
 	broadcastTopicReply(replie.TopicID, sentMessage)
+}
+
+func handleTopicReplyReaction(wsMessageBody types.WebSocketMessage) {
+	var replyData types.CreateTopicReplyReactionFromParams
+
+	fmt.Printf("wsMessageBody.Data: %+v\n", wsMessageBody.Data)
+
+	err := mapToStruct(wsMessageBody.Data, &replyData)
+	if err != nil {
+		fmt.Println("Failed to map to CreateTopicReply:", err)
+		return
+	}
+
+	fmt.Printf("Mapped Data: %+v\n", replyData)
+
+	recipientID, recipientIDErr := primitive.ObjectIDFromHex(wsMessageBody.RecipientID)
+	if recipientIDErr != nil {
+		fmt.Println("Invalid ObjectID:", err)
+		return
+	}
+	userID, userIDErr := primitive.ObjectIDFromHex(wsMessageBody.SenderID)
+	if userIDErr != nil {
+		fmt.Println("Invalid ObjectID:", err)
+		return
+	}
+
+	reactionDoc := types.Reaction{
+		SourceID:  recipientID,
+		Type:      "topic_reply",
+		Reaction:  replyData.Content,
+		UserID:    userID,
+		ReactedAt: time.Now(),
+	}
+
+	reaction, err := Store.Reactions.Create(context.Background(), reactionDoc)
+	if err != nil {
+		fmt.Println("Failed to create topic reply reaction:", err)
+		return
+	}
+
+	sentMessage := types.WebSocketSentMessage{
+		Type: "update_topic_reply_reaction",
+		Data: reaction,
+	}
+	broadcastTopicReply(replyData.TopicID, sentMessage)
 }
 
 func broadcastTopicReply(topicID string, wsMessage types.WebSocketSentMessage) {
