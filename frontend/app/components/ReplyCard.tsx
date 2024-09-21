@@ -1,12 +1,12 @@
 // ReplyCard.tsx
 "use client";
 
-import React, { useState } from "react";
+import { useState } from "react";
+import { SocketSendMessage, sendSocketMessage } from "../lib/socket";
+import { Reaction, TopicReply, UserResponse } from "../types/topic";
 import ReplyActions from "./ReplyActions";
 import UserInfo from "./UserInfo"; // Import the new UserInfo component
-import { ReactionGroup, TopicReply, UserResponse } from "../types/topic";
 import UserReaction from "./UserReaction";
-import { sendSocketMessage, SocketSendMessage } from "../lib/socket";
 
 interface ReplyCardProps {
   reply: TopicReply;
@@ -23,7 +23,6 @@ const ReplyCard = ({ reply, loggedInUserId }: ReplyCardProps) => {
     const message: SocketSendMessage = {
       type: "topic_reply_reaction",
       recipient_id: reply.id,
-      sender_id: reply.sender_id,
       data: {
         content: reaction,
         topic_id: reply.topic_id,
@@ -114,7 +113,8 @@ const ReplyCard = ({ reply, loggedInUserId }: ReplyCardProps) => {
         <>
           <div className="mt-2 flex items-center">
             <Reactions
-              reactions={reply.reactions}
+              reactions={reply.reactions || []}
+              loggedInUserId={loggedInUserId}
               onReactionChange={handleReaction}
             />
           </div>
@@ -136,37 +136,101 @@ const ReplyCard = ({ reply, loggedInUserId }: ReplyCardProps) => {
 };
 
 interface ReactionsProps {
-  reactions: ReactionGroup[];
-  onReactionChange: (reaction: string) => void;
+  reactions: Reaction[];
+  onReactionChange: (reactionId: string) => void;
+  loggedInUserId: string;
 }
 
-const Reactions = ({ reactions, onReactionChange }: ReactionsProps) => {
+const Reactions = ({
+  reactions,
+  onReactionChange,
+  loggedInUserId,
+}: ReactionsProps) => {
+  // Function to group reactions by emoji and calculate counts
+  const groupedReactions = reactions.reduce((acc, reaction) => {
+    const { reaction: emoji } = reaction;
+    if (!acc[emoji]) {
+      acc[emoji] = {
+        reaction: emoji,
+        count: 0,
+        userReacted: false,
+      };
+    }
+    acc[emoji].count += 1;
+    if (reaction.user_id === loggedInUserId) {
+      acc[emoji].userReacted = true;
+    }
+    return acc;
+  }, {} as { [key: string]: { reaction: string; count: number; userReacted: boolean } });
+
+  // Find the logged-in user's selected reaction
+  const userSelectedReaction = reactions.find(
+    (reaction) => reaction.user_id === loggedInUserId
+  )?.reaction;
+
   return (
     <>
-      {reactions?.length > 0 && (
+      {Object.keys(groupedReactions).length > 0 && (
         <div className="text-blue-600 rounded-full py-1 text-xs flex items-center">
           <div className="flex space-x-1">
-            {reactions.map((reactionGroup) => (
-              <span
-                key={reactionGroup.id}
-                className={`rounded-full px-2 py-1 text-xs flex items-center ${
-                  reactionGroup.user_reacted.type
-                    ? "bg-blue-300"
-                    : "bg-gray-200"
-                }`}
-              >
-                {reactionGroup.id}{" "}
-                <span className="ml-1">{reactionGroup.count}</span>{" "}
-              </span>
-            ))}
+            {Object.values(groupedReactions).map(
+              ({ reaction, count, userReacted }) => (
+                <span
+                  key={reaction}
+                  className={`rounded-full px-2 py-1 text-xs flex items-center ${
+                    userReacted ? "bg-blue-300" : "bg-gray-200"
+                  }`}
+                >
+                  {reaction} <span className="ml-1">{count}</span>{" "}
+                  {/* Display the count */}
+                </span>
+              )
+            )}
           </div>
         </div>
       )}
       <div className="mx-1">
-        <UserReaction onReactionChange={onReactionChange} />
+        {/* Pass the user's selected reaction to the UserReaction component */}
+        <UserReaction
+          onReactionChange={onReactionChange}
+          selectedReaction={userSelectedReaction} // Pass selected emoji for the logged-in user
+        />
       </div>
     </>
   );
 };
+
+
+
+// const Reactions = ({ reactions, onReactionChange,  loggedInUserId }: ReactionsProps) => {
+//   console.log(reactions, onReactionChange, loggedInUserId);
+  
+//   return (
+//     <>
+//       {reactions?.length > 0 && (
+//         <div className="text-blue-600 rounded-full py-1 text-xs flex items-center">
+//           <div className="flex space-x-1">
+//             {reactions.map((reactionGroup) => (
+//               <span
+//                 key={reactionGroup.id}
+//                 className={`rounded-full px-2 py-1 text-xs flex items-center ${
+//                   reactionGroup.user_reacted.type
+//                     ? "bg-blue-300"
+//                     : "bg-gray-200"
+//                 }`}
+//               >
+//                 {reactionGroup.id}{" "}
+//                 <span className="ml-1">{reactionGroup.count}</span>{" "}
+//               </span>
+//             ))}
+//           </div>
+//         </div>
+//       )}
+//       <div className="mx-1">
+//         <UserReaction onReactionChange={onReactionChange} />
+//       </div>
+//     </>
+//   );
+// };
 
 export default ReplyCard;

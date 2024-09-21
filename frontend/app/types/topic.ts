@@ -44,7 +44,7 @@ export interface TopicReply {
   content: string;
   sender: UserResponse;
   delete: boolean;
-  reactions: ReactionGroup[];
+  reactions: Reaction[];
   is_edited: boolean;
 }
 

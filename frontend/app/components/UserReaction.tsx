@@ -9,9 +9,13 @@ const allowedEmojis = ["❤️", "👍", "😂", "😍", "😯", "😥", "🥳"]
 
 interface UserReactionProps {
   onReactionChange: (reaction: string) => void; // Callback for changing the reaction
+  selectedReaction?: string; // Selected emoji
 }
 
-const UserReaction = ({ onReactionChange }: UserReactionProps) => {
+const UserReaction = ({
+  onReactionChange,
+  selectedReaction,
+}: UserReactionProps) => {
   const [showReactions, setShowReactions] = useState(false);
   const reactionRef = useRef<HTMLDivElement>(null);
 
@@ -28,8 +32,11 @@ const UserReaction = ({ onReactionChange }: UserReactionProps) => {
         className={`cursor-pointer bg-gray-200 rounded-full px-2 py-2 text-xs text-gray-800 hover:bg-gray-300 hover:text-blue-600 transition duration-200 flex items-center justify-center`}
         onClick={() => setShowReactions(!showReactions)}
       >
-        <HiOutlineEmojiHappy />
-        <GoPlus />
+
+          <>
+            <HiOutlineEmojiHappy />
+            <GoPlus />
+          </>
       </span>
 
       {showReactions && (
@@ -37,13 +44,14 @@ const UserReaction = ({ onReactionChange }: UserReactionProps) => {
           {allowedEmojis.map((reaction) => (
             <div
               key={reaction}
-              className={`p-1 cursor-pointer hover:bg-gray-200 rounded-lg flex items-center transition duration-200`}
+              className={`p-1 cursor-pointer hover:bg-gray-200 rounded-lg flex items-center transition duration-200 ${
+                selectedReaction === reaction ? "bg-blue-200" : "" // Highlight selected emoji
+              }`}
               onClick={() => handleReaction(reaction)}
             >
               <span className="mr-1">{reaction}</span>
             </div>
           ))}
-          {/* <MdBlockFlipped /> */}
         </div>
       )}
     </div>
