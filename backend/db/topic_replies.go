@@ -71,44 +71,50 @@ func (s *topicReplyStore) GetByTopicID(
 			"preserveNullAndEmptyArrays": true,
 		}}},
 		bson.D{{Key: "$lookup", Value: bson.M{
-			"from": "reactions",
-			"let":  bson.M{"reply_id": "$_id"},
-			"pipeline": bson.A{
-				//filter reactions with reply id and reply type
-				bson.D{
-					{Key: "$match", Value: bson.M{
-						"$expr": bson.M{
-							"$and": bson.A{
-								bson.M{"$eq": bson.A{"$source_id", "$$reply_id"}},
-								bson.M{"$eq": bson.A{"$type", "topic_reply"}},
-							},
-						},
-					}},
-				},
-				// check if current user reacted or not
-				bson.D{
-					{Key: "$addFields", Value: bson.M{
-						"user_reacted": bson.M{
-							"$cond": bson.M{
-								"if":   bson.M{"$eq": bson.A{"$user_id", userID}},
-								"then": "$$ROOT",
-								"else": nil,
-							},
-						},
-					}},
-				},
-				// gorup by reaction type and take a count
-				bson.D{
-					{Key: "$group", Value: bson.M{
-						"_id":          "$reaction",
-						"count":        bson.M{"$sum": 1},
-						"user_reacted": bson.M{"$max": "$user_reacted"}, // Retain the user_reacted field
-					}},
-				},
-			},
-
-			"as": "reactions",
+			"from":         "reactions",
+			"localField":   "_id",
+			"foreignField": "source_id",
+			"as":           "reactions",
 		}}},
+		// bson.D{{Key: "$lookup", Value: bson.M{
+		// 	"from": "reactions",
+		// 	"let":  bson.M{"reply_id": "$_id"},
+		// 	"pipeline": bson.A{
+		// 		//filter reactions with reply id and reply type
+		// 		bson.D{
+		// 			{Key: "$match", Value: bson.M{
+		// 				"$expr": bson.M{
+		// 					"$and": bson.A{
+		// 						bson.M{"$eq": bson.A{"$source_id", "$$reply_id"}},
+		// 						bson.M{"$eq": bson.A{"$type", "topic_reply"}},
+		// 					},
+		// 				},
+		// 			}},
+		// 		},
+		// 		// check if current user reacted or not
+		// 		bson.D{
+		// 			{Key: "$addFields", Value: bson.M{
+		// 				"user_reacted": bson.M{
+		// 					"$cond": bson.M{
+		// 						"if":   bson.M{"$eq": bson.A{"$user_id", userID}},
+		// 						"then": "$$ROOT",
+		// 						"else": nil,
+		// 					},
+		// 				},
+		// 			}},
+		// 		},
+		// 		// gorup by reaction type and take a count
+		// 		bson.D{
+		// 			{Key: "$group", Value: bson.M{
+		// 				"_id":          "$reaction",
+		// 				"count":        bson.M{"$sum": 1},
+		// 				"user_reacted": bson.M{"$max": "$user_reacted"}, // Retain the user_reacted field
+		// 			}},
+		// 		},
+		// 	},
+
+		// 	"as": "reactions",
+		// }}},
 		bson.D{{Key: "$sort", Value: bson.M{"sent_time": 1}}},
 	}
 
@@ -155,36 +161,42 @@ func (s *topicReplyStore) GetByID(ctx context.Context, id string, userID primiti
 		// Lookup reactions and count them
 		bson.D{{Key: "$lookup", Value: bson.M{
 			"from":         "reactions",
-			"let":          bson.M{"reply_id": "$_id"},
-			"pipeline": bson.A{
-				// Match reactions for this reply
-				bson.D{{Key: "$match", Value: bson.M{
-					"$expr": bson.M{
-						"$and": bson.A{
-							bson.M{"$eq": bson.A{"$source_id", "$$reply_id"}},
-							bson.M{"$eq": bson.A{"$type", "topic_reply"}},
-						},
-					},
-				}}},
-				// Check if the current user reacted
-				bson.D{{Key: "$addFields", Value: bson.M{
-					"user_reacted": bson.M{
-						"$cond": bson.M{
-							"if":   bson.M{"$eq": bson.A{"$user_id", userID}},
-							"then": "$$ROOT",
-							"else": nil,
-						},
-					},
-				}}},
-				// Group by reaction type and count
-				bson.D{{Key: "$group", Value: bson.M{
-					"_id":          "$reaction",
-					"count":        bson.M{"$sum": 1},
-					"user_reacted": bson.M{"$max": "$user_reacted"},
-				}}},
-			},
-			"as": "reactions",
+			"localField":   "_id",
+			"foreignField": "source_id",
+			"as":           "reactions",
 		}}},
+		// bson.D{{Key: "$lookup", Value: bson.M{
+		// 	"from":         "reactions",
+		// 	"let":          bson.M{"reply_id": "$_id"},
+		// 	"pipeline": bson.A{
+		// 		// Match reactions for this reply
+		// 		bson.D{{Key: "$match", Value: bson.M{
+		// 			"$expr": bson.M{
+		// 				"$and": bson.A{
+		// 					bson.M{"$eq": bson.A{"$source_id", "$$reply_id"}},
+		// 					bson.M{"$eq": bson.A{"$type", "topic_reply"}},
+		// 				},
+		// 			},
+		// 		}}},
+		// 		// Check if the current user reacted
+		// 		bson.D{{Key: "$addFields", Value: bson.M{
+		// 			"user_reacted": bson.M{
+		// 				"$cond": bson.M{
+		// 					"if":   bson.M{"$eq": bson.A{"$user_id", userID}},
+		// 					"then": "$$ROOT",
+		// 					"else": nil,
+		// 				},
+		// 			},
+		// 		}}},
+		// 		// Group by reaction type and count
+		// 		bson.D{{Key: "$group", Value: bson.M{
+		// 			"_id":          "$reaction",
+		// 			"count":        bson.M{"$sum": 1},
+		// 			"user_reacted": bson.M{"$max": "$user_reacted"},
+		// 		}}},
+		// 	},
+		// 	"as": "reactions",
+		// }}},
 		// Format reactions into ReactionGroup
 		
 	}
