@@ -16,6 +16,7 @@ type UserStore interface {
 	GetByID(ctx context.Context, id string) (types.UserResponse, error)
 	UpdateByID(ctx context.Context, id string, user types.UpdateUser) error
 	GetByEmail(ctx context.Context, email string) (types.User, error)
+	GetByUsername(ctx context.Context, email string) (types.User, error)
 	DeleteByID(ctx context.Context, id string) error
 }
 
@@ -72,9 +73,10 @@ func (s *userStore) GetByID(ctx context.Context, id string) (types.UserResponse,
 	}
 
 	userResponse := types.UserResponse{
-		ID:    user.ID,
-		Name:  user.Name,
-		Email: user.Email,
+		ID:       user.ID,
+		Name:     user.Name,
+		Email:    user.Email,
+		Username: user.Username,
 	}
 
 	return userResponse, nil
@@ -119,6 +121,15 @@ func (s *userStore) UpdateByID(ctx context.Context, id string, fields types.Upda
 func (s *userStore) GetByEmail(ctx context.Context, email string) (types.User, error) {
 	var user types.User
 	err := s.Collection.FindOne(ctx, bson.M{"email": email}).Decode(&user)
+	if err != nil {
+		return types.User{}, err
+	}
+	return user, nil
+}
+
+func (s *userStore) GetByUsername(ctx context.Context, username string) (types.User, error) {
+	var user types.User
+	err := s.Collection.FindOne(ctx, bson.M{"username": username}).Decode(&user)
 	if err != nil {
 		return types.User{}, err
 	}

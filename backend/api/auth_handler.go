@@ -8,6 +8,7 @@ import (
 	"log"
 	"net/http"
 	"net/url"
+	"strings"
 
 	"github.com/gofiber/fiber/v2"
 	"go.mongodb.org/mongo-driver/mongo"
@@ -40,6 +41,8 @@ func handleRegister(c *fiber.Ctx) error {
 	}
 	user.Password = string(hashedPassword)
 
+	username := strings.Split(user.Email, "@")[0]
+	user.Username = username
 	userID, err := Store.User.Create(c.Context(), user)
 	if err != nil {
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": err.Error()})

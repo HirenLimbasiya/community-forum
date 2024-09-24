@@ -64,7 +64,7 @@ func handleDeleteUser(c *fiber.Ctx) error {
 
 func handleUpdateUser(c *fiber.Ctx) error {
 	userID := c.Params("id")
-	var body types.CreateUser
+	var body types.UserProfile
 	if err := c.BodyParser(&body); err != nil {
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": err.Error()})
 	}
@@ -78,8 +78,9 @@ func handleUpdateUser(c *fiber.Ctx) error {
 	}
 
 	updatedUser := types.UpdateUser{
-		Name:  strings.TrimSpace(body.Name),
-		Email: strings.TrimSpace(body.Email),
+		Name:     strings.TrimSpace(body.Name),
+		Email:    strings.TrimSpace(body.Email),
+		Username: strings.TrimSpace(body.Username),
 	}
 
 	if updatedUser.Name == "" {
@@ -87,6 +88,9 @@ func handleUpdateUser(c *fiber.Ctx) error {
 	}
 	if updatedUser.Email == "" {
 		updatedUser.Email = existingUser.Email
+	}
+	if updatedUser.Username == "" {
+		updatedUser.Username = existingUser.Username
 	}
 
 	err = Store.User.UpdateByID(c.Context(), userID, updatedUser)

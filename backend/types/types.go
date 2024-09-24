@@ -7,15 +7,23 @@ import (
 )
 
 type User struct {
-	ID       primitive.ObjectID `json:"id,omitempty" bson:"_id,omitempty"`
-	Name     string             `json:"name"         bson:"name"`
-	Email    string             `json:"email"        bson:"email"`
-	Password string             `json:"password"     bson:"password"`
+	ID             primitive.ObjectID `json:"id,omitempty"    bson:"_id,omitempty"`
+	Name           string             `json:"name"            bson:"name"`
+	Email          string             `json:"email"           bson:"email"`
+	Password       string             `json:"password"        bson:"password"`
+	Username       string             `json:"username"        bson:"username"`
+	ProfilePicture string             `json:"profile_picture" bson:"profile_picture"`
+	SocialMedia    SocialMedia        `json:"social_media"    bson:"social_media"`
+	Bio            string             `json:"bio"             bson:"bio"`
 }
 type UserResponse struct {
-	ID    primitive.ObjectID `json:"id,omitempty" bson:"_id,omitempty"`
-	Name  string             `json:"name"         bson:"name"`
-	Email string             `json:"email"        bson:"email"`
+	ID             primitive.ObjectID `json:"id,omitempty"    bson:"_id,omitempty"`
+	Name           string             `json:"name"            bson:"name"`
+	Email          string             `json:"email"           bson:"email"`
+	Username       string             `json:"username"        bson:"username"`
+	ProfilePicture string             `json:"profile_picture" bson:"profile_picture"`
+	SocialMedia    SocialMedia        `json:"social_media"    bson:"social_media"`
+	Bio            string             `json:"bio"             bson:"bio"`
 }
 
 type Topic struct {
@@ -34,13 +42,42 @@ type CreateTopic struct {
 }
 
 type CreateUser struct {
-	Name     string `json:"name"     bson:"name"`
-	Email    string `json:"email"    bson:"email"`
-	Password string `json:"password" bson:"password"`
+	Name           string      `json:"name"            bson:"name"`
+	Email          string      `json:"email"           bson:"email"`
+	Password       string      `json:"password"        bson:"password"`
+	Username       string      `json:"username"        bson:"username"`
+	ProfilePicture string      `json:"profile_picture" bson:"profile_picture"`
+	SocialMedia    SocialMedia `json:"social_media"    bson:"social_media"`
+	Bio            string      `json:"bio"             bson:"bio"`
+}
+type UserProfile struct {
+	Name           string      `json:"name"            bson:"name"`
+	Email          string      `json:"email"           bson:"email"`
+	Username       string      `json:"username"        bson:"username"`
+	ProfilePicture string      `json:"profile_picture" bson:"profile_picture"`
+	SocialMedia    SocialMedia `json:"social_media"    bson:"social_media"`
+	Bio            string      `json:"bio"             bson:"bio"`
 }
 type UpdateUser struct {
-	Name  string `json:"name"  bson:"name"`
-	Email string `json:"email" bson:"email"`
+	Name           string      `json:"name"            bson:"name"`
+	Email          string      `json:"email"           bson:"email"`
+	Username       string      `json:"username"        bson:"username"`
+	ProfilePicture string      `json:"profile_picture" bson:"profile_picture"`
+	SocialMedia    SocialMedia `json:"social_media"    bson:"social_media"`
+	Bio            string      `json:"bio"             bson:"bio"`
+}
+
+type SocialMedia struct {
+	Twitter   string `json:"twitter"   bson:"twitter"`
+	LinkedIn  string `json:"linkedin"  bson:"linkedin"`
+	GitHub    string `json:"github"    bson:"github"`
+	Facebook  string `json:"facebook"  bson:"facebook"`
+	Instagram string `json:"instagram" bson:"instagram"`
+	Snapchat  string `json:"snapchat"  bson:"snapchat"`
+	YouTube   string `json:"youtube"   bson:"youtube"`
+	Pinterest string `json:"pinterest" bson:"pinterest"`
+	Discord   string `json:"discord"   bson:"discord"`
+	Website   string `json:"website"   bson:"website"`
 }
 
 type TopicReply struct {
@@ -51,7 +88,7 @@ type TopicReply struct {
 	Content   string             `json:"content"      bson:"content"`
 	Sender    UserResponse       `json:"sender"       bson:"sender"`
 	Delete    bool               `json:"delete"       bson:"delete"`
-	Reactions []Reaction    `json:"reactions"    bson:"reactions"`
+	Reactions []Reaction         `json:"reactions"    bson:"reactions"`
 	IsEdited  bool               `json:"is_edited"    bson:"is_edited"`
 	// ReactionsData map[string]interface{} `json:"reactions_data" bson:"reactions_data"`
 }
