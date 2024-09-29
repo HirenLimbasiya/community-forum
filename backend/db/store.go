@@ -9,6 +9,7 @@ type Store struct {
 	Topic        TopicStore
 	TopicReplies TopicReplyStore
 	Reactions    ReactionStore
+	FileUpload   FileUploadStore
 }
 
 func NewStore(database *mongo.Database) *Store {
@@ -16,10 +17,12 @@ func NewStore(database *mongo.Database) *Store {
 	topicCollection := database.Collection("topics")
 	topicRepliesCollection := database.Collection("topic_replies")
 	reactionCollection := database.Collection("reactions")
+	filesCollection := database.Collection("uploads")
 	return &Store{
 		User:         NewUserStore(userCollection),
 		Topic:        NewTopicStore(topicCollection),
 		TopicReplies: NewTopicReplyStore(topicRepliesCollection),
 		Reactions:    NewReactionStore(reactionCollection),
+		FileUpload:   NewFileUploadStore(filesCollection),
 	}
 }

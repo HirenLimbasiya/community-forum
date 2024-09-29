@@ -8,6 +8,7 @@ import (
 	"log"
 	"net/http"
 	"net/url"
+	"os"
 	"strings"
 
 	"github.com/gofiber/fiber/v2"
@@ -16,9 +17,12 @@ import (
 )
 
 func RegisterAuthRoutes(app *fiber.App) {
+	app.Static("/avatar", "./uploads/avatar")
 	app.Post("/api/registeruser", handleRegister)
 	app.Post("/api/login", handleLogin)
 	app.Get("/api/email-test", handleEmail)
+	app.Get("/api/getavatar/:letter/:size", handleGenerateAvatar)
+	app.Get("/api/allavatar", handleGetAllAvatar)
 }
 
 func handleRegister(c *fiber.Ctx) error {
@@ -166,4 +170,48 @@ func handleSendEmail(name, email, number, username, myPassword string) (string, 
 
 	// Return the response body as a string
 	return string(body), nil
+}
+
+func handleGenerateAvatar(c *fiber.Ctx) error {
+	letter := c.Params("letter")
+	if len(letter) > 1 {
+		letter = strings.ToUpper(letter[:1])
+	}
+
+	size, err := c.ParamsInt("size")
+	if err != nil || size <= 0 {
+		size = 150
+	}
+	// Define the email template with inline CSS
+	svg := global.GenerateSVGByLetter(letter, size)
+	// Set content type to SVG
+	c.Set("Content-Type", "image/svg+xml")
+
+	// Send SVG response
+	return c.SendString(svg)
+}
+
+// Route to get all files in the "uploads" directory
+func handleGetAllAvatar(c *fiber.Ctx) error {
+	// Define the directory path
+	dirPath := "uploads/avatar"
+
+	// Read the directory
+	files, err := os.ReadDir(dirPath)
+	if err != nil {
+		return c.Status(fiber.StatusInternalServerError).SendString("Unable to read directory")
+	}
+
+	// Prepare a list to store file names
+	var fileList []string
+
+	// Loop through all files and add to the list
+	for _, file := range files {
+		if !file.IsDir() {
+			fileList = append(fileList, file.Name())
+		}
+	}
+
+	// Return the list of files as a JSON response
+	return c.JSON(fileList)
 }
