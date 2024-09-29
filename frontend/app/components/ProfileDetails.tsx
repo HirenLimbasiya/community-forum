@@ -26,6 +26,7 @@ const ProfileDetails = ({ userId }: ProfileDetailsProps) => {
       }
     };
     fetchUser();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [userId]);
 
   return (
@@ -35,7 +36,11 @@ const ProfileDetails = ({ userId }: ProfileDetailsProps) => {
           {/* Profile Header */}
           <div className="bg-gradient-to-r from-blue-500 to-indigo-500 h-48 flex items-center justify-center">
             <Image
-              src="/avatar-placeholder.png" // Placeholder for user avatar
+              src={`${process.env.NEXT_PUBLIC_API_URL}/avatar/${
+                user?.profile_picture
+                  ? user?.profile_picture
+                  : (user?.name || "H") + "/150"
+              }`}
               alt="User Avatar"
               width={150}
               height={150}

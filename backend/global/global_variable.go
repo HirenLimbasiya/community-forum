@@ -17,7 +17,7 @@ func GenerateSVGByLetter(letter string, size int) string {
 	// Create SVG string with dynamic size
 	svg := fmt.Sprintf(`
 	<svg xmlns="http://www.w3.org/2000/svg" width="%d" height="%d" viewBox="0 0 %d %d">
-		<rect width="%d" height="%d" fill="none" stroke="#000" stroke-width="1"/>
+		<rect width="%d" height="%d" fill="none" stroke="#000" stroke-width="0"/>
 		<text x="50%%" y="50%%" font-size="%d" text-anchor="middle" fill="black" dy=".35em">%s</text>
 	</svg>
 	`, size, size, size, size, size, size, fontSize, letter)

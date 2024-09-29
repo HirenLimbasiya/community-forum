@@ -20,7 +20,7 @@ func RegisterAuthRoutes(app *fiber.App) {
 	app.Post("/api/registeruser", handleRegister)
 	app.Post("/api/login", handleLogin)
 	app.Get("/api/email-test", handleEmail)
-	app.Get("/api/getavatar/:letter/:size", handleGenerateAvatar)
+	app.Get("/avatar/:letter/:size", handleGenerateAvatar)
 }
 
 func handleRegister(c *fiber.Ctx) error {
