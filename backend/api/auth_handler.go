@@ -8,7 +8,6 @@ import (
 	"log"
 	"net/http"
 	"net/url"
-	"os"
 	"strings"
 
 	"github.com/gofiber/fiber/v2"
@@ -22,7 +21,6 @@ func RegisterAuthRoutes(app *fiber.App) {
 	app.Post("/api/login", handleLogin)
 	app.Get("/api/email-test", handleEmail)
 	app.Get("/api/getavatar/:letter/:size", handleGenerateAvatar)
-	app.Get("/api/allavatar", handleGetAllAvatar)
 }
 
 func handleRegister(c *fiber.Ctx) error {
@@ -189,29 +187,4 @@ func handleGenerateAvatar(c *fiber.Ctx) error {
 
 	// Send SVG response
 	return c.SendString(svg)
-}
-
-// Route to get all files in the "uploads" directory
-func handleGetAllAvatar(c *fiber.Ctx) error {
-	// Define the directory path
-	dirPath := "uploads/avatar"
-
-	// Read the directory
-	files, err := os.ReadDir(dirPath)
-	if err != nil {
-		return c.Status(fiber.StatusInternalServerError).SendString("Unable to read directory")
-	}
-
-	// Prepare a list to store file names
-	var fileList []string
-
-	// Loop through all files and add to the list
-	for _, file := range files {
-		if !file.IsDir() {
-			fileList = append(fileList, file.Name())
-		}
-	}
-
-	// Return the list of files as a JSON response
-	return c.JSON(fileList)
 }
