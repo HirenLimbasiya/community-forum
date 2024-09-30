@@ -2,6 +2,7 @@ package api
 
 import (
 	"community-forum-backend/types"
+	"os"
 	"strings"
 
 	"github.com/gofiber/fiber/v2"
@@ -14,6 +15,7 @@ func RegisterUserRoutes(app *fiber.App) {
 	app.Get("/api/user/:id", handleGetUser)
 	app.Patch("/api/user/:id", handleUpdateUser)
 	app.Delete("/api/user/:id", handleDeleteUser)
+	app.Get("/api/user/allavatar", handleGetAllAvatar)
 }
 
 func handleGetUsers(c *fiber.Ctx) error {
@@ -64,7 +66,7 @@ func handleDeleteUser(c *fiber.Ctx) error {
 
 func handleUpdateUser(c *fiber.Ctx) error {
 	userID := c.Params("id")
-	var body types.CreateUser
+	var body types.UserProfile
 	if err := c.BodyParser(&body); err != nil {
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": err.Error()})
 	}
@@ -78,8 +80,9 @@ func handleUpdateUser(c *fiber.Ctx) error {
 	}
 
 	updatedUser := types.UpdateUser{
-		Name:  strings.TrimSpace(body.Name),
-		Email: strings.TrimSpace(body.Email),
+		Name:     strings.TrimSpace(body.Name),
+		Email:    strings.TrimSpace(body.Email),
+		Username: strings.TrimSpace(body.Username),
 	}
 
 	if updatedUser.Name == "" {
@@ -87,6 +90,9 @@ func handleUpdateUser(c *fiber.Ctx) error {
 	}
 	if updatedUser.Email == "" {
 		updatedUser.Email = existingUser.Email
+	}
+	if updatedUser.Username == "" {
+		updatedUser.Username = existingUser.Username
 	}
 
 	err = Store.User.UpdateByID(c.Context(), userID, updatedUser)
@@ -98,4 +104,29 @@ func handleUpdateUser(c *fiber.Ctx) error {
 	}
 
 	return c.JSON(fiber.Map{"message": "User updated successfully"})
+}
+
+// Route to get all files in the "uploads/avatar" directory
+func handleGetAllAvatar(c *fiber.Ctx) error {
+	// Define the directory path
+	dirPath := "uploads/avatar"
+
+	// Read the directory
+	files, err := os.ReadDir(dirPath)
+	if err != nil {
+		return c.Status(fiber.StatusInternalServerError).SendString("Unable to read directory")
+	}
+
+	// Prepare a list to store file names
+	var fileList []string
+
+	// Loop through all files and add to the list
+	for _, file := range files {
+		if !file.IsDir() {
+			fileList = append(fileList, file.Name())
+		}
+	}
+
+	// Return the list of files as a JSON response
+	return c.JSON(fileList)
 }

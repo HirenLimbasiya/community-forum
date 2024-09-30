@@ -8,6 +8,7 @@ import (
 	"log"
 	"net/http"
 	"net/url"
+	"strings"
 
 	"github.com/gofiber/fiber/v2"
 	"go.mongodb.org/mongo-driver/mongo"
@@ -15,9 +16,11 @@ import (
 )
 
 func RegisterAuthRoutes(app *fiber.App) {
+	app.Static("/avatar", "./uploads/avatar")
 	app.Post("/api/registeruser", handleRegister)
 	app.Post("/api/login", handleLogin)
 	app.Get("/api/email-test", handleEmail)
+	app.Get("/avatar/:letter/:size", handleGenerateAvatar)
 }
 
 func handleRegister(c *fiber.Ctx) error {
@@ -40,6 +43,8 @@ func handleRegister(c *fiber.Ctx) error {
 	}
 	user.Password = string(hashedPassword)
 
+	username := strings.Split(user.Email, "@")[0]
+	user.Username = username
 	userID, err := Store.User.Create(c.Context(), user)
 	if err != nil {
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": err.Error()})
@@ -163,4 +168,23 @@ func handleSendEmail(name, email, number, username, myPassword string) (string, 
 
 	// Return the response body as a string
 	return string(body), nil
+}
+
+func handleGenerateAvatar(c *fiber.Ctx) error {
+	letter := c.Params("letter")
+	if len(letter) > 1 {
+		letter = strings.ToUpper(letter[:1])
+	}
+
+	size, err := c.ParamsInt("size")
+	if err != nil || size <= 0 {
+		size = 150
+	}
+	// Define the email template with inline CSS
+	svg := global.GenerateSVGByLetter(letter, size)
+	// Set content type to SVG
+	c.Set("Content-Type", "image/svg+xml")
+
+	// Send SVG response
+	return c.SendString(svg)
 }
