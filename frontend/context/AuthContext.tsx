@@ -2,8 +2,8 @@
 
 import React, { createContext, useContext, useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import { loginUser, createUser } from "../services/userService"; // Adjust the import based on your structure
-import { connectSocket } from "../lib/socket";
+import { connectSocket } from "@/lib/socket";
+import { createUser, loginUser } from "@/services/userService";
 
 interface AuthContextType {
   isAuthenticated: boolean;

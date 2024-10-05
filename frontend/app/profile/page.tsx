@@ -1,8 +1,8 @@
+import Header from "@/components/Header";
+import ProfileDetails from "@/components/ProfileDetails";
+import ProtectedRoute from "@/components/ProtectedRoute";
+import UserTopics from "@/components/UserTopics";
 import React from "react";
-import ProtectedRoute from "../components/ProtectedRoute";
-import Header from "../components/Header";
-import ProfileDetails from "../components/ProfileDetails";
-import UserTopics from "../components/UserTopics";
 
 const ProfilePage = () => {
   return (

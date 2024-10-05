@@ -1,9 +1,8 @@
 "use client";
-
-import RepliesContainer from "@/app/components/RepliesContainer";
-import { getTopicById } from "@/app/services/topicService";
-import { setSingleTopicInStore } from "@/app/slices/singleTopicSlice";
-import { useAppDispatch, useAppSelector } from "@/app/store/hooks";
+import RepliesContainer from "@/components/RepliesContainer";
+import { getTopicById } from "@/services/topicService";
+import { setSingleTopicInStore } from "@/slices/singleTopicSlice";
+import { useAppDispatch, useAppSelector } from "@/store/hooks";
 import { useParams } from "next/navigation";
 import { useEffect, useState } from "react";
 
@@ -19,7 +18,7 @@ const TopicDetailPage = () => {
     const fetchTopic = async () => {
       try {
         const { data } = await getTopicById(topicId);
-        dispatch(setSingleTopicInStore(data))
+        dispatch(setSingleTopicInStore(data));
       } catch (error) {
         setError("Failed to fetch topic details.");
       } finally {
@@ -28,7 +27,7 @@ const TopicDetailPage = () => {
     };
 
     fetchTopic();
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [id]);
 
   // Centered loading message

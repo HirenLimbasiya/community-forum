@@ -1,10 +1,10 @@
 "use client";
 
-import React, { useState } from "react";
+import { useAuth } from "@/context/AuthContext";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { useAuth } from "../context/AuthContext"; // Import the Auth context
-import { FiMenu, FiX, FiArrowLeft } from "react-icons/fi"; // Icons for mobile menu
+import { useState } from "react";
+import { FiArrowLeft, FiMenu, FiX } from "react-icons/fi"; // Icons for mobile menu
 
 const Header = () => {
   const pathname = usePathname();

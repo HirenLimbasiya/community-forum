@@ -33,9 +33,10 @@ func handleRegister(c *fiber.Ctx) error {
 	_, err := Store.User.GetByEmail(c.Context(), user.Email)
 	if err == nil {
 		return c.Status(fiber.StatusConflict).JSON(fiber.Map{"error": "Email already in use"})
-	} else if err != mongo.ErrNoDocuments {
-		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": "Failed to check email"})
-	}
+	} 
+	// else if err != mongo.ErrNoDocuments {
+	// 	return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": "Failed to check email"})
+	// }
 
 	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(user.Password), bcrypt.DefaultCost)
 	if err != nil {

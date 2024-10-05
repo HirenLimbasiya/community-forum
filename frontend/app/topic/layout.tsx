@@ -1,7 +1,7 @@
 "use client";
 
-import Header from "../components/Header";
-import ProtectedRoute from "../components/ProtectedRoute";
+import Header from "@/components/Header";
+import ProtectedRoute from "@/components/ProtectedRoute";
 
 export default function TopicLayout({
   children,

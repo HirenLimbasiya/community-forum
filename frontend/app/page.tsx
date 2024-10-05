@@ -3,9 +3,9 @@
 
 import React, { useEffect } from "react";
 import Link from "next/link";
-import Header from "./components/Header";
-import { useAuth } from "./context/AuthContext";
 import { useRouter } from "next/navigation";
+import { useAuth } from "@/context/AuthContext";
+import Header from "@/components/Header";
 
 const HomePage = () => {
   const { isAuthenticated } = useAuth(); // Access login and isAuthenticated from AuthContext
