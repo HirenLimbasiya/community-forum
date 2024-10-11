@@ -60,7 +60,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
   const logout = () => {
     setIsAuthenticated(false);
     localStorage.removeItem("token");
-    router.push("/login");
+    router.push("/");
   };
 
   const register = async (

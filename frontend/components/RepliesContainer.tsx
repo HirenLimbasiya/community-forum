@@ -12,9 +12,10 @@ import RepliesList from "./RepliesList";
 
 interface RepliesContainerProps {
   topicId: string;
+  isClosed: boolean;
 }
 
-const RepliesContainer = ({ topicId }: RepliesContainerProps) => {
+const RepliesContainer = ({ topicId, isClosed }: RepliesContainerProps) => {
   const dispatch = useAppDispatch(); // Use typed dispatch
   const { replies } = useAppSelector((state) => state.singleTopic); // Use typed selector
   // const [replies, setReplies] = useState<TopicReply[]>([]);
@@ -75,7 +76,15 @@ const RepliesContainer = ({ topicId }: RepliesContainerProps) => {
   return (
     <div className="flex flex-col h-full">
       <RepliesList replies={replies} loggedInUserId={userId} />
-      <ReplyInput onSend={handleSendReply} />
+      {isClosed ? (
+        <div className="flex items-center justify-center p-4 mt-4 bg-red-100 border border-red-400 text-red-600 rounded-md">
+          <p className="font-semibold text-center">
+            This topic is closed for replies.
+          </p>
+        </div>
+      ) : (
+        <ReplyInput onSend={handleSendReply} />
+      )}
     </div>
   );
 };

@@ -4,99 +4,112 @@ import { useAuth } from "@/context/AuthContext";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useState } from "react";
-import { FiArrowLeft, FiMenu, FiX } from "react-icons/fi"; // Icons for mobile menu
+import { FiArrowLeft, FiMenu, FiX } from "react-icons/fi";
 
 const Header = () => {
   const pathname = usePathname();
-  const { isAuthenticated, logout } = useAuth(); // Get authentication status and logout function
-  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false); // State for mobile menu
+  const { isAuthenticated, logout } = useAuth();
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
   const isActiveLink = (path: string) => pathname === path;
 
   const handleLogout = () => {
-    logout(); // Use the logout function from the context
+    logout();
   };
 
   const toggleMobileMenu = () => {
-    setIsMobileMenuOpen(!isMobileMenuOpen);
+    setIsMobileMenuOpen((prevState) => !prevState);
   };
 
   return (
-    <header className="bg-white border-b border-gray-200 py-4 h-16 sticky top-0 z-50 shadow-md">
-      <div className="container mx-auto flex justify-between items-center px-4 h-full">
-        <Link href="/" className="text-2xl font-semibold text-gray-800">
-          MyApp
+    <header className="bg-light border-b border-softBlue py-4 sticky top-0 z-50 shadow-md">
+      <div className="container mx-auto flex justify-between items-center px-4 h-16">
+        {/* Logo */}
+        <Link href="/topic" className="text-2xl font-bold text-navy">
+          Community Forum
         </Link>
 
-        {/* Hamburger Icon for Mobile */}
+        {/* Mobile Menu Toggle */}
         <div className="md:hidden">
-          <button onClick={toggleMobileMenu} className="text-gray-800">
+          <button
+            onClick={toggleMobileMenu}
+            aria-expanded={isMobileMenuOpen}
+            aria-label="Toggle mobile menu"
+            className="text-navy focus:outline-none"
+          >
             {isMobileMenuOpen ? <FiX size={24} /> : <FiMenu size={24} />}
           </button>
         </div>
 
-        {/* Desktop Menu */}
+        {/* Desktop Navigation */}
         <nav className="hidden md:flex items-center space-x-6">
-          <Link
-            href="/topic"
-            className={`text-md font-medium transition ${
-              isActiveLink("/topic")
-                ? "text-blue-600 font-semibold border-b-2 border-blue-600"
-                : "text-gray-700 hover:text-blue-500"
-            }`}
-          >
-            Topics
-          </Link>
-          <Link
-            href="/profile"
-            className={`text-md font-medium transition ${
-              isActiveLink("/profile")
-                ? "text-blue-600 font-semibold border-b-2 border-blue-600"
-                : "text-gray-700 hover:text-blue-500"
-            }`}
-          >
-            Profile
-          </Link>
-        </nav>
+          {isAuthenticated && (
+            <>
+              <Link
+                href="/topic"
+                className={`text-md font-medium transition ${
+                  isActiveLink("/topic")
+                    ? "text-darkBlue font-semibold border-b-2 border-darkBlue"
+                    : "text-gray-700 hover:text-darkBlue"
+                }`}
+              >
+                Topics
+              </Link>
+              <Link
+                href="/profile"
+                className={`text-md font-medium transition ${
+                  isActiveLink("/profile")
+                    ? "text-darkBlue font-semibold border-b-2 border-darkBlue"
+                    : "text-gray-700 hover:text-darkBlue"
+                }`}
+              >
+                Profile
+              </Link>
+            </>
+          )}
 
-        {/* Auth Buttons for Desktop */}
-        <div className="hidden md:flex items-center space-x-6">
+          {/* Auth Buttons */}
           {isAuthenticated ? (
             <button
               onClick={handleLogout}
-              className="text-md font-medium text-white bg-blue-500 hover:bg-blue-600 py-2 px-4 rounded transition"
+              className="text-md font-medium text-white bg-darkBlue hover:bg-navy py-2 px-4 rounded-lg shadow-md transition"
             >
               Logout
             </button>
           ) : (
             <Link
               href="/login"
-              className="text-md font-medium text-white bg-blue-500 hover:bg-blue-600 py-2 px-4 rounded transition"
+              className="text-md font-medium text-white bg-darkBlue hover:bg-navy py-2 px-4 rounded-lg shadow-md transition"
             >
               Login
             </Link>
           )}
-        </div>
+        </nav>
 
-        {/* Full-height Mobile Menu */}
+        {/* Mobile Menu */}
         {isMobileMenuOpen && (
-          <div className="fixed inset-0 bg-white flex flex-col justify-between p-6 md:hidden">
-            {/* Close/Back button at the top-left */}
+          <div className="fixed inset-0 bg-white z-50 flex flex-col justify-between p-6 md:hidden transition-transform transform translate-x-0 shadow-lg">
+            {/* Close Icon */}
             <div className="absolute top-4 left-4">
-              <button onClick={toggleMobileMenu} className="text-gray-800">
+              <button
+                onClick={toggleMobileMenu}
+                aria-label="Close mobile menu"
+                className="text-navy"
+              >
                 <FiArrowLeft size={24} />
               </button>
             </div>
 
-            {/* Centered Links */}
+            {/* Navigation Links */}
             <nav className="flex flex-col items-center space-y-6 flex-grow">
               <Link
                 href="/topic"
                 className={`text-lg font-medium transition ${
                   isActiveLink("/topic")
-                    ? "text-blue-600 font-semibold"
-                    : "text-gray-700 hover:text-blue-500"
+                    ? "text-darkBlue font-semibold"
+                    : "text-gray-700 hover:text-darkBlue"
                 }`}
+                onClick={toggleMobileMenu}
               >
                 Topics
               </Link>
@@ -104,27 +117,32 @@ const Header = () => {
                 href="/profile"
                 className={`text-lg font-medium transition ${
                   isActiveLink("/profile")
-                    ? "text-blue-600 font-semibold"
-                    : "text-gray-700 hover:text-blue-500"
+                    ? "text-darkBlue font-semibold"
+                    : "text-gray-700 hover:text-darkBlue"
                 }`}
+                onClick={toggleMobileMenu}
               >
                 Profile
               </Link>
             </nav>
 
-            {/* Logout/Login Button at the bottom */}
+            {/* Auth Button */}
             <div className="mt-auto">
               {isAuthenticated ? (
                 <button
-                  onClick={handleLogout}
-                  className="text-md font-medium text-white bg-blue-500 hover:bg-blue-600 py-2 px-4 w-full rounded transition"
+                  onClick={() => {
+                    handleLogout();
+                    toggleMobileMenu();
+                  }}
+                  className="text-md font-medium text-white bg-darkBlue hover:bg-navy py-2 px-4 w-full rounded-lg shadow-md transition"
                 >
                   Logout
                 </button>
               ) : (
                 <Link
                   href="/login"
-                  className="text-md font-medium text-white bg-blue-500 hover:bg-blue-600 py-2 px-4 w-full rounded transition"
+                  className="text-md font-medium text-white bg-darkBlue hover:bg-navy py-2 px-4 w-full rounded-lg shadow-md transition"
+                  onClick={toggleMobileMenu}
                 >
                   Login
                 </Link>

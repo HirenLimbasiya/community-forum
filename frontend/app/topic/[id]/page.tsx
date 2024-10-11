@@ -72,7 +72,7 @@ const TopicDetailPage = () => {
         >
           {topic.is_closed ? "Closed" : "Open"}
         </span>
-        <RepliesContainer topicId={topicId} />
+        <RepliesContainer topicId={topicId} isClosed={topic.is_closed} />
       </div>
     </div>
   );

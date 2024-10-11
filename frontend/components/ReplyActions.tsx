@@ -1,7 +1,9 @@
 // ReplyActions.tsx
 "use client";
 
-import { FiEdit, FiTrash2, FiFlag } from "react-icons/fi";
+import { FiEdit, FiTrash2, 
+  // FiFlag 
+} from "react-icons/fi";
 
 interface ReplyActionsProps {
   isSender: boolean;
@@ -29,13 +31,14 @@ const ReplyActions = ({ isSender, onClick }: ReplyActionsProps) => {
           </button>
         </>
       ) : (
-        <button
-          aria-label="Report"
-          className="text-gray-600 hover:text-red-500"
-          onClick={() => onClick("report")}
-        >
-          <FiFlag />
-        </button>
+        // <button
+        //   aria-label="Report"
+        //   className="text-gray-600 hover:text-red-500"
+        //   onClick={() => onClick("report")}
+        // >
+        //   <FiFlag />
+        // </button>
+        <></>
       )}
     </div>
   );
