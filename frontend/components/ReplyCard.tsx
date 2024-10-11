@@ -2,11 +2,11 @@
 "use client";
 
 import { useState } from "react";
-import { SocketSendMessage, sendSocketMessage } from "../lib/socket";
-import { Reaction, TopicReply, UserResponse } from "../types/topic";
 import ReplyActions from "./ReplyActions";
 import UserInfo from "./UserInfo"; // Import the new UserInfo component
 import UserReaction from "./UserReaction";
+import { Reaction, TopicReply, UserResponse } from "@/types/topic";
+import { SocketSendMessage, sendSocketMessage } from "@/lib/socket";
 
 interface ReplyCardProps {
   reply: TopicReply;

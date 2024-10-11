@@ -1,8 +1,9 @@
 "use client";
-import Chip from "@/app/components/Chip"; // Importing the reusable Chip component
+
 import { useRouter } from "next/navigation";
 import { Topic, UserResponse } from "../types/topic";
 import UserInfo from "./UserInfo";
+import Chip from "./Chip";
 
 interface TopicCardProps {
   topic: Topic;
@@ -47,7 +48,6 @@ const TopicCard = ({ topic }: TopicCardProps) => {
           color={is_closed ? "red" : "green"}
         />
       </div>
-
     </div>
   );
 };

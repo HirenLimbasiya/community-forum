@@ -1,4 +1,5 @@
-import RegisterUser from "../components/RegisterUser";
+import RegisterUser from "@/components/RegisterUser";
+
 
 export default function RegisterPage() {
   return (

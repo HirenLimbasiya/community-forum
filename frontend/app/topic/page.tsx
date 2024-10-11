@@ -1,32 +1,39 @@
 "use client";
 
-import { useEffect } from "react";
-import TopicCard from "../components/TopicCard";
-import { getAllTopics } from "../services/topicService";
-import { setTopicsInStore } from "../slices/topicsSlice";
-import { useAppDispatch, useAppSelector } from "../store/hooks";
+import { useEffect, useState } from "react";
+import { useAppDispatch, useAppSelector } from "../../store/hooks";
+import { getAllTopics } from "@/services/topicService";
+import { setTopicsInStore } from "@/slices/topicsSlice";
+import TopicCard from "@/components/TopicCard";
 
 const TopicPage = () => {
+  const [loading, setLoading] = useState<boolean>(true);
+  const [error, setError] = useState<string | null>(null);
+
   const { topics } = useAppSelector((state) => state.topics);
   const dispatch = useAppDispatch();
 
   useEffect(() => {
     const fetchTopics = async () => {
       try {
+        setLoading(true);
         const { data } = await getAllTopics();
         dispatch(setTopicsInStore(data || []));
-      } catch (error) {
-        console.error(error);
+        setError(null);
+      } catch (err) {
+        setError("Failed to load topics. Please try again later.");
+        console.error(err);
+      } finally {
+        setLoading(false);
       }
     };
+
     fetchTopics();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   return (
     <div className="min-h-[calc(100vh-64px)] bg-gray-50 py-8">
       <div className="container mx-auto px-4">
-        {/* Centered Heading with Light Color and Custom Underline */}
         <div className="text-center mb-12">
           <h1 className="text-5xl font-extrabold text-gray-600 tracking-wide">
             Explore Topics
@@ -36,9 +43,14 @@ const TopicPage = () => {
           </div>
         </div>
 
-        {/* Conditionally render based on topics */}
-        {topics?.length === 0 ? (
+        {loading ? (
           <p className="text-xl text-gray-500 text-center">Loading topics...</p>
+        ) : error ? (
+          <p className="text-xl text-red-500 text-center">{error}</p>
+        ) : topics?.length === 0 ? (
+          <p className="text-xl text-gray-500 text-center">
+            No topics available.
+          </p>
         ) : (
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
             {topics?.map((topic) => (

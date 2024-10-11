@@ -3,10 +3,10 @@ module community-forum-backend
 go 1.21.7
 
 require (
-	github.com/gofiber/fiber/v2 v2.52.4
-	go.mongodb.org/mongo-driver v1.15.0
 	github.com/dgrijalva/jwt-go v3.2.0+incompatible
+	github.com/gofiber/fiber/v2 v2.52.4
 	github.com/gofiber/websocket/v2 v2.2.1
+	go.mongodb.org/mongo-driver v1.15.0
 )
 
 require (
@@ -14,6 +14,7 @@ require (
 	github.com/fasthttp/websocket v1.5.3 // indirect
 	github.com/golang/snappy v0.0.1 // indirect
 	github.com/google/uuid v1.5.0 // indirect
+	github.com/joho/godotenv v1.5.1 // indirect
 	github.com/klauspost/compress v1.17.0 // indirect
 	github.com/mattn/go-colorable v0.1.13 // indirect
 	github.com/mattn/go-isatty v0.0.20 // indirect

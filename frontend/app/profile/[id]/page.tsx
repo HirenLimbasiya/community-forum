@@ -1,8 +1,9 @@
 "use client"
-import Header from "@/app/components/Header";
-import ProfileDetails from "@/app/components/ProfileDetails";
-import ProtectedRoute from "@/app/components/ProtectedRoute";
-import UserTopics from "@/app/components/UserTopics";
+
+import Header from "@/components/Header";
+import ProfileDetails from "@/components/ProfileDetails";
+import ProtectedRoute from "@/components/ProtectedRoute";
+import UserTopics from "@/components/UserTopics";
 import { useParams } from "next/navigation";
 import React from "react";
 
